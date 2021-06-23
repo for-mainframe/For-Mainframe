@@ -6,15 +6,14 @@ import eu.ibagroup.formainframe.config.connect.ConnectionConfig
 import eu.ibagroup.formainframe.config.connect.UrlConnection
 import eu.ibagroup.formainframe.utils.crudable.getByForeignKey
 import eu.ibagroup.r2z.buildApi
-import okhttp3.OkHttpClient
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
-class ZosmfApiImpl : ZoweApi {
+class EndevorApiImpl : ZoweApi {
 
-  private data class ZosmfUrl(val url: String, val isAllowSelfSigned: Boolean)
+  private data class ApiUrl(val url: String, val isAllowSelfSigned: Boolean)
 
-  private val apis = hashMapOf<Class<out Any>, MutableMap<ZosmfUrl, Any>>()
+  private val apis = hashMapOf<Class<out Any>, MutableMap<ApiUrl, Any>>()
 
   override fun <Api : Any> getApi(apiClass: Class<out Api>, connectionConfig: ConnectionConfig): Api {
     val urlConnection = configCrudable
@@ -25,7 +24,7 @@ class ZosmfApiImpl : ZoweApi {
 
   @Suppress("UNCHECKED_CAST")
   override fun <Api : Any> getApi(apiClass: Class<out Api>, url: String, isAllowSelfSigned: Boolean): Api {
-    val zosmfUrl = ZosmfUrl(url, isAllowSelfSigned)
+    val zosmfUrl = ApiUrl(url, isAllowSelfSigned)
     if (!apis.containsKey(apiClass)) {
       synchronized(apis) {
         if (!apis.containsKey(apiClass)) {
@@ -38,7 +37,7 @@ class ZosmfApiImpl : ZoweApi {
       synchronized(apiClassMap) {
         if (!apiClassMap.containsKey(zosmfUrl)) {
           val baseUrl = zosmfUrl.url
-          val client = getOkHttpClient(zosmfUrl.isAllowSelfSigned)
+          val client = ZoweApi.getOkHttpClient(zosmfUrl.isAllowSelfSigned)
           apiClassMap[zosmfUrl] = buildApi(baseUrl, client, apiClass)
         }
       }
@@ -73,6 +72,7 @@ val safeOkHttpClient by lazy {
 }
 */
 
+/*
 private fun getOkHttpClient(isAllowSelfSigned: Boolean): OkHttpClient {
   return if (isAllowSelfSigned) {
     ZoweApi.unsafeOkHttpClient
@@ -81,7 +81,10 @@ private fun getOkHttpClient(isAllowSelfSigned: Boolean): OkHttpClient {
   }
 }
 
-/*private fun buildUnsafeClient(): OkHttpClient {
+*/
+
+/*
+ fun buildUnsafeClient(): OkHttpClient {
   return try {
     val trustAllCerts: Array<TrustManager> = arrayOf(
       object : X509TrustManager {
@@ -115,4 +118,6 @@ private fun getOkHttpClient(isAllowSelfSigned: Boolean): OkHttpClient {
   } catch (e: Exception) {
     throw RuntimeException(e)
   }
-}*/
+}
+*/
+

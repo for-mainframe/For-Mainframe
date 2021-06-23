@@ -128,7 +128,7 @@ To start using the plugin:<br/>
         <applicationService serviceInterface="eu.ibagroup.formainframe.dataops.DataOpsManager" preload="true"
                             serviceImplementation="eu.ibagroup.formainframe.dataops.DataOpsManagerImpl"/>
 
-        <applicationService serviceInterface="eu.ibagroup.formainframe.api.ZosmfApi"
+        <applicationService serviceInterface="eu.ibagroup.formainframe.api.ZoweApi"
                             serviceImplementation="eu.ibagroup.formainframe.api.ZosmfApiImpl"/>
 
         <applicationService serviceInterface="eu.ibagroup.formainframe.explorer.ui.ExplorerContent"

@@ -65,7 +65,7 @@ class DatasetFileFetchProvider(dataOpsManager: DataOpsManager) :
   private fun buildAttributes(query: RemoteQuery<DSMask, Unit>, dataset: Dataset): RemoteDatasetAttributes {
     return RemoteDatasetAttributes(
       dataset,
-      query.urlConnection.url,
+      query.connectionConfig.url,
       MaskedRequester(
         query.connectionConfig,
         query.request

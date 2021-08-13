@@ -16,7 +16,9 @@ fun RemoteRobot.configurableEditor(function: ConfigurableEditor.() -> Unit) {
 @FixtureName("ConfigurableEditor")
 class ConfigurableEditor(remoteRobot: RemoteRobot, remoteComponent: RemoteComponent) : CommonContainerFixture(remoteRobot, remoteComponent) {
     val conTab = remoteRobot.tabLabel(remoteRobot, "z/OSMF Connections")
-    val addButton = actionButton(byXpath("//div[@accessiblename='Add' and @class='ActionButton' and @myaction='Add (Add)']"))
+    fun add() {
+        clickActionButton(byXpath("//div[@accessiblename='Add' and @class='ActionButton' and @myaction='Add (Add)']"))
+    }
     companion object {
         @JvmStatic
         fun xPath() = byXpath("//div[@class='ConfigurableEditor']")

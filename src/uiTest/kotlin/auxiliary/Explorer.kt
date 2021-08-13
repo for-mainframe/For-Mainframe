@@ -13,7 +13,9 @@ fun RemoteRobot.explorer(function: Explorer.() -> Unit) {
 
 @FixtureName("Explorer")
 class Explorer(remoteRobot: RemoteRobot, remoteComponent: RemoteComponent) : CommonContainerFixture(remoteRobot, remoteComponent) {
-    val settings = actionButton(byXpath("//div[@class='ActionButton' and @myaction=' ()']"))
+    fun settings() {
+        clickActionButton(byXpath("//div[@class='ActionButton' and @myaction=' ()']"))
+    }
     companion object {
         @JvmStatic
         fun xPath() = byXpath( "//div[@accessiblename='File Explorer Tool Window' and @class='InternalDecoratorImpl']")

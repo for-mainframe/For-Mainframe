@@ -13,7 +13,10 @@ fun RemoteRobot.ideFrameImpl(name: String, function: IdeFrameImpl.() -> Unit) {
 
 @FixtureName("IdeFrameImpl")
 class IdeFrameImpl(remoteRobot: RemoteRobot, remoteComponent: RemoteComponent) : CommonContainerFixture(remoteRobot, remoteComponent) {
-    val forMainframe = button(byXpath("For Mainframe", "//div[@accessiblename='For Mainframe' and @class='StripeButton' and @text='For Mainframe']"))
+    fun forMainframe() {
+        stripeButton(byXpath("For Mainframe", "//div[@accessiblename='For Mainframe' and @class='StripeButton' and @text='For Mainframe']"))
+            .click()
+    }
     companion object {
         @JvmStatic
         fun xPath(name: String) = byXpath("$name", "//div[@accessiblename='$name - IntelliJ IDEA' and @class='IdeFrameImpl']")

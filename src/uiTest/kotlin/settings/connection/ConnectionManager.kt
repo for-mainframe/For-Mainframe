@@ -9,56 +9,56 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import auxiliary.*
+import io.mockk.verify
 
 @ExtendWith(RemoteRobotExtension::class)
 class ConnectionManager {
 
     @BeforeEach
     fun setUp(remoteRobot: RemoteRobot) = with(remoteRobot) {
-//        welcomeFrame {
-//            openProject.click()
-//            dialog("Open File or Project") {
-//                textField(byXpath("","//div[@class='BorderlessTextField']")).text =
-//                    System.getProperty("user.dir") + "/src/uiTest/resources/untitled"
-//                button("OK").click()
-//            }
-//        }
-//        Thread.sleep(30000)
+        welcomeFrame {
+            openProject.click()
+            dialog("Open File or Project") {
+                textField(byXpath("","//div[@class='BorderlessTextField']")).text =
+                    System.getProperty("user.dir") + "/src/uiTest/resources/untitled"
+                button("OK").click()
+            }
+        }
+        Thread.sleep(30000)
     }
 
     @AfterEach
     fun tearDown(remoteRobot: RemoteRobot) = with(remoteRobot) {
-//        actionMenu(remoteRobot, "File").click()
-//        actionMenuItem(remoteRobot, "Close Project").click()
+        actionMenu(remoteRobot, "File").click()
+        actionMenuItem(remoteRobot, "Close Project").click()
     }
 
     @Test
     fun test(remoteRobot: RemoteRobot) = with(remoteRobot) {
         ideFrameImpl("untitled") {
-            forMainframe.click()
+            forMainframe()
             explorer {
-                settings.click()
+                settings()
             }
             dialog("Settings") {
                 configurableEditor {
                     conTab.click()
-                    actionButton(byXpath("//div[@accessiblename='Add' and @class='ActionButton' and @myaction='Add (Add)']")).click()
+                    add()
                 }
                 addConnectionDialog("a","https://a.com","a","a",true) {
-                    assertTrue(button("OK").isEnabled())
-                    button("OK").click()
+                    clickButton("OK")
                 }
                 dialog("Error Creating Connection") {
-                    button("Yes").click()
+                    clickButton("Yes")
                 }
                 configurableEditor {
-                    addButton.click()
+                    add()
                 }
                 addConnectionDialog("a","https://b.com","b","b",true) {
                     assertFalse(button("OK").isEnabled())
-                    button("Cancel").click()
+                    clickButton("Cancel")
                 }
-                button("Cancel").click()
+                clickButton("Cancel")
             }
         }
     }

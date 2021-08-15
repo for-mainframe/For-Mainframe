@@ -1,12 +1,14 @@
-package auxiliary
+package auxiliary.containers
 
+import auxiliary.ClosableFixtureCollector
+import auxiliary.clickActionButton
+import auxiliary.components.tabLabel
 import com.intellij.remoterobot.RemoteRobot
 import com.intellij.remoterobot.data.RemoteComponent
 import com.intellij.remoterobot.fixtures.CommonContainerFixture
-import com.intellij.remoterobot.fixtures.ComponentFixture
 import com.intellij.remoterobot.fixtures.FixtureName
+import com.intellij.remoterobot.search.locators.Locator
 import com.intellij.remoterobot.search.locators.byXpath
-import com.intellij.remoterobot.utils.waitFor
 import java.time.Duration
 
 fun RemoteRobot.configurableEditor(function: ConfigurableEditor.() -> Unit) {
@@ -16,22 +18,12 @@ fun RemoteRobot.configurableEditor(function: ConfigurableEditor.() -> Unit) {
 @FixtureName("ConfigurableEditor")
 class ConfigurableEditor(remoteRobot: RemoteRobot, remoteComponent: RemoteComponent) : CommonContainerFixture(remoteRobot, remoteComponent) {
     val conTab = remoteRobot.tabLabel(remoteRobot, "z/OSMF Connections")
-    fun add() {
+    fun add(closableFixtureCollector: ClosableFixtureCollector, stack: List<Locator>) {
         clickActionButton(byXpath("//div[@accessiblename='Add' and @class='ActionButton' and @myaction='Add (Add)']"))
+        closableFixtureCollector.add(AddConnectionDialog.xPath(), stack)
     }
     companion object {
         @JvmStatic
         fun xPath() = byXpath("//div[@class='ConfigurableEditor']")
     }
 }
-
-fun RemoteRobot.tabLabel(remoteRobot: RemoteRobot, name: String): TabLabel {
-    val xpath = byXpath("$name", "//div[@accessiblename='$name' and @class='TabLabel']")
-    waitFor {
-        findAll<TabLabel>(xpath).isNotEmpty()
-    }
-    return findAll<TabLabel>(xpath).first()
-}
-
-@FixtureName("TabLabel")
-class TabLabel(remoteRobot: RemoteRobot, remoteComponent: RemoteComponent) : ComponentFixture(remoteRobot, remoteComponent)

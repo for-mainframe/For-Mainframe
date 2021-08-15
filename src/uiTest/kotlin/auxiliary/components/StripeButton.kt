@@ -1,4 +1,4 @@
-package auxiliary
+package auxiliary.components
 
 import com.intellij.openapi.wm.impl.StripeButton
 import com.intellij.remoterobot.RemoteRobot

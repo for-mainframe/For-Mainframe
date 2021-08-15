@@ -1,4 +1,4 @@
-package auxiliary
+package auxiliary.components
 
 import com.intellij.remoterobot.RemoteRobot
 import com.intellij.remoterobot.data.RemoteComponent

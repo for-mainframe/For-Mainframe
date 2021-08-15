@@ -1,5 +1,6 @@
-package auxiliary
+package auxiliary.containers
 
+import auxiliary.clickButton
 import com.intellij.remoterobot.RemoteRobot
 import com.intellij.remoterobot.data.RemoteComponent
 import com.intellij.remoterobot.fixtures.CommonContainerFixture
@@ -13,8 +14,19 @@ fun RemoteRobot.welcomeFrame(function: WelcomeFrame.()-> Unit) {
 }
 
 @FixtureName("Welcome Frame")
-@DefaultXpath("type", "//div[@class='FlatWelcomeFrame']")
 class WelcomeFrame(remoteRobot: RemoteRobot, remoteComponent: RemoteComponent) : CommonContainerFixture(remoteRobot, remoteComponent) {
     val openProject
         get() = actionLink(byXpath("Open Project", "//div[(@accessiblename='Open or Import' and @class='JButton') or (@class='MainButton' and @text='Open')]"))
+    fun open(projectName: String) {
+        openProject.click()
+        dialog("Open File or Project") {
+            textField(byXpath("//div[@class='BorderlessTextField']")).text =
+                System.getProperty("user.dir") + "/src/uiTest/resources/$projectName"
+            clickButton("OK")
+        }
+    }
+    companion object {
+        @JvmStatic
+        fun xPath() = byXpath( "//div[@class='FlatWelcomeFrame']")
+    }
 }

@@ -1,9 +1,13 @@
-package auxiliary
+package auxiliary.containers
 
+import auxiliary.ClosableFixtureCollector
+import auxiliary.ClosableFixtureItem
+import auxiliary.clickActionButton
 import com.intellij.remoterobot.RemoteRobot
 import com.intellij.remoterobot.data.RemoteComponent
 import com.intellij.remoterobot.fixtures.CommonContainerFixture
 import com.intellij.remoterobot.fixtures.FixtureName
+import com.intellij.remoterobot.search.locators.Locator
 import com.intellij.remoterobot.search.locators.byXpath
 import java.time.Duration
 
@@ -13,8 +17,9 @@ fun RemoteRobot.explorer(function: Explorer.() -> Unit) {
 
 @FixtureName("Explorer")
 class Explorer(remoteRobot: RemoteRobot, remoteComponent: RemoteComponent) : CommonContainerFixture(remoteRobot, remoteComponent) {
-    fun settings() {
+    fun settings(closableFixtureCollector: ClosableFixtureCollector, stack: List<Locator>) {
         clickActionButton(byXpath("//div[@class='ActionButton' and @myaction=' ()']"))
+        closableFixtureCollector.add(SettingsDialog.xPath(), stack)
     }
     companion object {
         @JvmStatic

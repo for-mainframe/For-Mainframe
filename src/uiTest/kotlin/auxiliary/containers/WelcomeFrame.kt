@@ -14,6 +14,7 @@ fun RemoteRobot.welcomeFrame(function: WelcomeFrame.()-> Unit) {
 }
 
 @FixtureName("Welcome Frame")
+@DefaultXpath("type","//div[@class='FlatWelcomeFrame']")
 class WelcomeFrame(remoteRobot: RemoteRobot, remoteComponent: RemoteComponent) : CommonContainerFixture(remoteRobot, remoteComponent) {
     val openProject
         get() = actionLink(byXpath("Open Project", "//div[(@accessiblename='Open or Import' and @class='JButton') or (@class='MainButton' and @text='Open')]"))
@@ -24,9 +25,5 @@ class WelcomeFrame(remoteRobot: RemoteRobot, remoteComponent: RemoteComponent) :
                 System.getProperty("user.dir") + "/src/uiTest/resources/$projectName"
             clickButton("OK")
         }
-    }
-    companion object {
-        @JvmStatic
-        fun xPath() = byXpath( "//div[@class='FlatWelcomeFrame']")
     }
 }

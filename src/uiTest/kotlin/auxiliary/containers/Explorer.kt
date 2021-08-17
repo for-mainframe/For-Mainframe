@@ -1,8 +1,8 @@
 package auxiliary.containers
 
-import auxiliary.ClosableFixtureCollector
 import auxiliary.ClosableFixtureItem
 import auxiliary.clickActionButton
+import auxiliary.closable.ClosableFixtureCollector
 import com.intellij.remoterobot.RemoteRobot
 import com.intellij.remoterobot.data.RemoteComponent
 import com.intellij.remoterobot.fixtures.CommonContainerFixture

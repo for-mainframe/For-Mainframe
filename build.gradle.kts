@@ -120,7 +120,21 @@ val uiTest = task<Test>("uiTest") {
   group = "verification"
   testClassesDirs = sourceSets["uiTest"].output.classesDirs
   classpath = sourceSets["uiTest"].runtimeClasspath
-  useJUnitPlatform()
+  useJUnitPlatform() {
+    excludeTags("FirstTime")
+  }
+  testLogging {
+    events("passed", "skipped", "failed")
+  }
+}
+val firstTimeUiTest = task<Test>("firstTimeUiTest") {
+  description = "Gets rid of license agreement, etc."
+  group = "verification"
+  testClassesDirs = sourceSets["uiTest"].output.classesDirs
+  classpath = sourceSets["uiTest"].runtimeClasspath
+  useJUnitPlatform() {
+    includeTags("FirstTime")
+  }
   testLogging {
     events("passed", "skipped", "failed")
   }
@@ -130,12 +144,14 @@ tasks.downloadRobotServerPlugin {
   version = remoteRobotVersion
 }
 
+/**
+ * TODO ("change port for server IDEA")
+ */
 tasks.runIdeForUiTests {
 //    In case your Idea is launched on remote machine you can enable public port and enable encryption of JS calls
 //    systemProperty "robot-server.host.public", "true"
 //    systemProperty "robot.encryption.enabled", "true"
 //    systemProperty "robot.encryption.password", "my super secret"
-
 
   //this does not work
 //    System.setProperty("robot-server.port", "8082")

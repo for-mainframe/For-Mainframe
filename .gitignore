@@ -3,7 +3,7 @@
 gradle
 build
 
-libs
+#libs
 
 # Windows thumbnail cache files
 Thumbs.db

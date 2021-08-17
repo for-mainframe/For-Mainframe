@@ -12,17 +12,25 @@ import eu.ibagroup.formainframe.config.ws.UssPath
 import eu.ibagroup.formainframe.config.ws.WorkingSetConfig
 import eu.ibagroup.formainframe.config.ws.ui.WSTableModel
 import io.mockk.spyk
+import org.junit.After
 import org.junit.AfterClass
+import org.junit.Before
 import org.junit.BeforeClass
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 
-abstract class SettingsUnitTestCase: UsefulTestCase() {
+open class UnitTestCase {
     val app = spyk(MockApplication(Disposer.newDisposable("")))
 
-    override fun setUp() {
+    @BeforeEach
+    fun setUp() {
         ApplicationManager.setApplication(app,Disposer.newDisposable(""))
     }
 
-    override fun tearDown() {
+    @AfterEach
+    fun tearDown() {
         app.dispose()
     }
 }

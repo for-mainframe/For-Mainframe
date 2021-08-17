@@ -1,7 +1,7 @@
 package auxiliary.containers
 
-import auxiliary.ClosableFixtureCollector
 import auxiliary.clickActionButton
+import auxiliary.closable.ClosableFixtureCollector
 import auxiliary.components.tabLabel
 import com.intellij.remoterobot.RemoteRobot
 import com.intellij.remoterobot.data.RemoteComponent

@@ -6,7 +6,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.message, 'oneJob')"
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -28,12 +27,6 @@ jobs:
           gradle wrapper --gradle-version 6.8.1
           chmod +x gradlew
           ./gradlew build -x test
-      - name: Run Unit Tests
-        run: ./gradlew test
-        if: always()
-      - name: Run API Tests
-        run: ./gradlew apiTest
-        if: always()
       - name: Run Ui Tests
         run: ./src/uiTest/resources/uiTest.sh
       - name: Cleanup Gradle Cache

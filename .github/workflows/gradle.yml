@@ -22,6 +22,10 @@ jobs:
     runs-on: self-hosted
 
     steps:
+    - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
     - name: Check everything
       run: pwd && ls -la
       shell: bash

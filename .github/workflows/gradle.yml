@@ -23,6 +23,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: CD
+      run: cd ./.github/actions/setup
+      shell: bash
     - uses: ./.github/actions/setup/action.yml
     - name: Check everything
       run: pwd && ls -la

@@ -24,7 +24,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ./.github/actions/setup/action
+    - uses: ./.github/actions/setup
     - name: Check everything
       run: pwd && ls -la
       shell: bash

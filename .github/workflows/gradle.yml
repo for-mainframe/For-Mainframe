@@ -7,8 +7,7 @@
 
 name: Java CI with Gradle
 
-on:
-  workflow_dispatch
+on: workflow_dispatch
 #  push:
 #    branches: [ "IJMP-738-github-actions" ]
 #  pull_request:

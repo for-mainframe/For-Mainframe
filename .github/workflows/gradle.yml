@@ -7,14 +7,16 @@
 
 name: Java CI with Gradle
 
-on: workflow_dispatch
-#  push:
-#    branches: [ "IJMP-738-github-actions" ]
-#  pull_request:
-#    branches: [ "IJMP-738-github-actions" ]
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "IJMP-738-github-actions" ]
+  pull_request:
+    branches: [ "IJMP-738-github-actions" ]
 
 permissions:
   contents: read
+
 
 jobs:
   build:

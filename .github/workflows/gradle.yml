@@ -37,4 +37,4 @@ jobs:
       run: gradle wrapper && ./gradlew buildPlugin
       shell: bash
     - name: Sonarcloud scans
-      uses: ./.github/actions/sonar-scans
+      uses: ./.github/actions/sonar

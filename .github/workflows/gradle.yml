@@ -20,10 +20,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-
-    - uses: ./.github/actions/setup
-    - name: Check everything
+    - name: Checkout of github repository
+      uses: actions/checkout@v3
+    - name: Setup of environment
+      uses: ./.github/actions/setup
+    - name: Check repopository content
       run: pwd && ls -la
       shell: bash
     - name: Cache Gradle packages
@@ -35,3 +36,5 @@ jobs:
     - name: Build with Gradle
       run: gradle wrapper && ./gradlew buildPlugin
       shell: bash
+    - name: Sonarcloud scans
+      uses: ./.github/actions/sonar-scans

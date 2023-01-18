@@ -36,25 +36,25 @@ jobs:
     - name: Build with Gradle
       run: gradle wrapper && ./gradlew buildPlugin
       shell: bash
-#    - name: Sonarcloud scans
-#      uses: ./.github/actions/sonar
-    - name: Cache SonarCloud packages
-      uses: actions/cache@v1
-        with:
-          path: ~/.sonar/caches
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-    - name: Code coverage and publish results
-      run: >
-        ./gradlew --info sonarqube
-        -Dorg.gradle.jvmargs="-XX:MaxMetaspaceSize=512m"
-        -Dresults="build/reports/tests/test,build/test-results/test,build/reports/jacoco/test/html"
-        -Psonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
-        -Partifactory_user=$ARTIFACTORY_USERNAME -Partifactory_password=$ARTIFACTORY_PASSWORD
-        -Dsonar.coverage.jacoco.xmlReportPaths="build/reports/jacoco.xml"
-      env:
-        ARTIFACTORY_USE RNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-        ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Sonarcloud scans
+      uses: ./.github/actions/sonar
+#    - name: Cache SonarCloud packages
+#      uses: actions/cache@v1
+#      with:
+#        path: ~/.sonar/caches
+#        key: ${{ runner.os }}-sonar
+#        restore-keys: ${{ runner.os }}-sonar
+#    - name: Code coverage and publish results
+#      run: >
+#        ./gradlew --info sonarqube
+#        -Dorg.gradle.jvmargs="-XX:MaxMetaspaceSize=512m"
+#        -Dresults="build/reports/tests/test,build/test-results/test,build/reports/jacoco/test/html"
+#        -Psonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
+#        -Partifactory_user=$ARTIFACTORY_USERNAME -Partifactory_password=$ARTIFACTORY_PASSWORD
+#        -Dsonar.coverage.jacoco.xmlReportPaths="build/reports/jacoco.xml"
+#      env:
+#        ARTIFACTORY_USE RNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+#        ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+#        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+#        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

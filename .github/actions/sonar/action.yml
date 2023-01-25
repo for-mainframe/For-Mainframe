@@ -3,6 +3,7 @@ description: "Runs sonar scans"
 
 
 runs:
+  using: composite
   steps:
     - name: Cache SonarCloud packages
       uses: actions/cache@v1
@@ -12,6 +13,7 @@ runs:
         restore-keys: ${{ runner.os }}-sonar
 
     - name: Code coverage and publish results
+      shell: bash
       run: >
         ./gradlew --info sonarqube
         -Dorg.gradle.jvmargs="-XX:MaxMetaspaceSize=512m"

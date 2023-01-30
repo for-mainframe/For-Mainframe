@@ -38,6 +38,10 @@ jobs:
       shell: bash
     - name: Sonarcloud scans
       uses: ./.github/actions/sonar
+      env:
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 #    - name: Cache SonarCloud packages
 #      uses: actions/cache@v1
 #      with:

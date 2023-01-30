@@ -20,7 +20,3 @@ runs:
         -Dresults="build/reports/tests/test,build/test-results/test,build/reports/jacoco/test/html"
         -Psonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
         -Dsonar.coverage.jacoco.xmlReportPaths="build/reports/jacoco.xml"
-      env:
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

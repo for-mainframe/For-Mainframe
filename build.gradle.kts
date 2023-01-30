@@ -30,7 +30,7 @@ apply(from = "gradle/sonar.gradle")
 
 group = "eu.ibagroup"
 version = "0.7.1"
-val remoteRobotVersion = "0.11.14"
+val remoteRobotVersion = "0.11.16"
 
 repositories {
   mavenCentral()

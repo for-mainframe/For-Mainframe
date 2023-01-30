@@ -30,10 +30,18 @@ apply(from = "gradle/sonar.gradle")
 
 group = "eu.ibagroup"
 version = "0.7.1"
-val remoteRobotVersion = "0.11.16"
+val remoteRobotVersion = "0.11.14"
 
 repositories {
   mavenCentral()
+  maven {
+    url = uri("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies")
+    metadataSources {
+      mavenPom()
+      artifact()
+      ignoreGradleMetadataRedirection()
+    }
+  }
 }
 
 java {

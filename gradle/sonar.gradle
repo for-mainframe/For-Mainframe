@@ -9,7 +9,7 @@ sonarqube {
         property "sonar.sourceEncoding", "UTF-8"
         property "sonar.organization", "for-mainframe"
         property "sonar.projectKey", "for-mainframe"
-        property "sonar.projectName", "for-mainframe"
+        property "sonar.projectName", "For-Mainframe"
         property "sonar.projectVersion", project.version
         property "sonar.language", "kotlin"
         property "sonar.links.scm", "https://github.com/for-mainframe/For-Mainframe"

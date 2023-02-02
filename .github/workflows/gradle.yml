@@ -74,6 +74,13 @@ jobs:
         name: builtPlugin
         path: ./build/distributions/
 
+    - name: Check plugin built availability
+      shell: bash
+      run: ls -la ./build/distributions
+
+    - name: Configure github pages
+      uses: actions/configure-pages@v1
+
     - name: Upload built plugin to pages
       uses: actions/upload-pages-artifact@v1
       with:

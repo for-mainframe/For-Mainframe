@@ -16,23 +16,29 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout of github repository
       uses: actions/checkout@v3
+
     - name: Setup of environment
       uses: ./.github/actions/setup
+
     - name: Check repopository content
       run: pwd && ls -la
       shell: bash
+
     - name: Cache Gradle packages
       uses: actions/cache@v1
       with:
         path: ~/.gradle/caches
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
         restore-keys: ${{ runner.os }}-gradle
+
     - name: Build with Gradle
       run: gradle wrapper && ./gradlew buildPlugin
       shell: bash
+
     - name: Sonarcloud scans
       uses: ./.github/actions/sonar
       env:
@@ -40,12 +46,21 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
+
   deploy:
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+
     runs-on: ubuntu-latest
+
     concurrency: test
     environment:
       name: test
       url: https://github.com
+
     steps:
     -  name: deploy
        uses: actions/deploy-pages@v1

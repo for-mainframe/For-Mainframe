@@ -13,12 +13,9 @@ on:
 permissions:
   contents: read
 
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout of github repository
       uses: actions/checkout@v3
@@ -42,3 +39,13 @@ jobs:
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency: test
+    environment:
+      name: test
+      url: https://github.com
+    steps:
+    -  name: deploy
+       uses: actions/deploy-pages@v1

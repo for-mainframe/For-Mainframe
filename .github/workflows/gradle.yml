@@ -56,11 +56,11 @@ jobs:
   deploy:
     needs: build
 
-    permissions:
-      pages: write
-      id-token: write
+#    permissions:
+#      pages: write
+#      id-token: write
 
-    runs-on: ubuntu-latest
+    runs-on: XBY_IJMP_machine
 
     concurrency: test
     environment:
@@ -68,6 +68,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+    - name: Check current directory
+      shell: bash
+      run: pwd && ls -la
+
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
@@ -78,14 +82,18 @@ jobs:
       shell: bash
       run: ls -la ./build/distributions
 
-    - name: Configure github pages
-      uses: actions/configure-pages@v1
+    - name: Move built plugin to shared repository
+      shell: bash
+      run: mv ./build/distributions/ /root/pluginBuilds/
 
-    - name: Upload built plugin to pages
-      uses: actions/upload-pages-artifact@v1
-      with:
-        path: ./build/distributions/
-
-    - name: Deploy built plugin to pages
-      id: deployment
-      uses: actions/deploy-pages@v1
+#    - name: Configure github pages
+#      uses: actions/configure-pages@v1
+#
+#    - name: Upload built plugin to pages
+#      uses: actions/upload-pages-artifact@v1
+#      with:
+#        path: ./build/distributions/
+#
+#    - name: Deploy built plugin to pages
+#      id: deployment
+#      uses: actions/deploy-pages@v1

@@ -84,7 +84,7 @@ jobs:
 
     - name: Move built plugin to shared repository
       shell: bash
-      run: mv ./build/distributions/ /root/pluginBuilds/
+      run: mv ./build/distributions/for-mainframe-0.7.1.zip /root/pluginBuilds/
 
 #    - name: Configure github pages
 #      uses: actions/configure-pages@v1

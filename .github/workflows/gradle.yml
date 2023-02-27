@@ -89,9 +89,8 @@ jobs:
 
     - name: Generate name for built plugin archive
       shell: bash
+      run: TEMP_VAR="$(echo $(grep -lir 'for-mainframe' build))"
 #      run: echo "##[set-output name=file_name;]$(echo $(grep -lir 'for-mainframe' build))"
-      run: >
-        TEMP_VAR1="$(echo $(grep -lir 'for-mainframe' build))"
 #      id: current_file_name
 
     - name: Generate
@@ -102,4 +101,4 @@ jobs:
 
     - name: Move built plugin to destination folder
       shell: bash
-      run: mkdir -p /var/www/plugin-builds/${{ steps.extract_branch.outputs.branch }} && mv $TEMP_VAR1 /var/www/plugin-builds/${{ steps.extract_branch.outputs.branch }}/$TEMP_VAR2
+      run: mkdir -p /var/www/plugin-builds/${{ steps.extract_branch.outputs.branch }} && mv $TEMP_VAR /var/www/plugin-builds/${{ steps.extract_branch.outputs.branch }}/$TEMP_VAR2

@@ -92,7 +92,8 @@ jobs:
       run: >
         CURRENT_FILE_NAME_PATH=$(echo $(grep -lir 'for-mainframe' build)) &&
         echo "Name of current file: $CURRENT_FILE_NAME_PATH" &&
-        echo $(grep -lir 'for-mainframe' build)
+        echo $(grep -lir 'for-mainframe' build) &&
+        ls -la
 
     - name: Generate new name for built plugin
       shell: bash

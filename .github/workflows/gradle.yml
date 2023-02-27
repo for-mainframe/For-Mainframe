@@ -89,7 +89,7 @@ jobs:
 
     - name: Generate name for built plugin archive
       shell: bash
-      run: TEMP_VAR1=$(grep -lir 'for-mainframe' build)
+      run: TEMP_VAR1=$(grep -lir 'for-mainframe' build) && echo $TEMP_VAR1
 
     - name: Generate
       shell: bash

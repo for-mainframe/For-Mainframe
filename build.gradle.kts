@@ -24,6 +24,8 @@ plugins {
   jacoco
 }
 
+val sonarLinksCi: String by project
+
 apply(plugin = "kotlin")
 apply(plugin = "org.jetbrains.intellij")
 apply(from = "gradle/sonar.gradle")
@@ -34,6 +36,9 @@ val remoteRobotVersion = "0.11.14"
 
 repositories {
   mavenCentral()
+  flatDir {
+    dirs("libs")
+  }
   maven {
     url = uri("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies")
     metadataSources {

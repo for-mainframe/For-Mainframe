@@ -89,7 +89,12 @@ jobs:
 
     - name: Generate name for built plugin archive
       shell: bash
-      run: TEMP_VAR1=$(grep -lir 'for-mainframe' build) && TEMP_VAR2="$(echo ${TEMP_VAR1%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr : _)".zip"
+      run: TEMP_VAR1=$(grep -lir 'for-mainframe' build)
+
+    - name: Generate
+      shell: bash
+      run: >
+        TEMP_VAR2="$(echo ${TEMP_VAR1%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr : _)".zip"
 
     - name: Move built plugin to destination folder
       shell: bash

@@ -93,7 +93,7 @@ jobs:
       run: >
         CURRENT_FILE_NAME_PATH=$(echo $(find build -name "for-mainframe*")) &&
         echo "Name of current file: $CURRENT_FILE_NAME_PATH" &&
-        echo "CURRENT_FILE_NAME=$CURRENT_FILE_NAME" >> $GITHUB_OUTPUT
+        echo "CURRENT_FILE_NAME_PATH=$CURRENT_FILE_NAME_PATH" >> $GITHUB_OUTPUT
 
     - name: Generate new name for built plugin
       id: generate_file_name

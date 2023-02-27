@@ -35,13 +35,9 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
         restore-keys: ${{ runner.os }}-gradle
 
-#    - name: Build with Gradle
-#      run: gradle wrapper && ./gradlew buildPlugin
-#      shell: bash
-
-    - name: Create zip archive
+    - name: Build with Gradle
+      run: gradle wrapper && ./gradlew buildPlugin
       shell: bash
-      run: mkdir -p build && mkdir -p build/distributions && echo "Hello world" >> build/distributions/for-mainframe-0.7.1.zip
 
     - name: Publish built plugin
       uses: actions/upload-artifact@v3

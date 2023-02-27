@@ -65,7 +65,7 @@ jobs:
     concurrency: test
     environment:
       name: test
-      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.branch}}
+      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.branch}}/${{ steps.extract_file_name.outputs.file_name }}
 
     steps:
     - name: Extract branch name
@@ -87,14 +87,26 @@ jobs:
       shell: bash
       run: ls -la ./build/distributions
 
-    - name: Generate name for built plugin archive
+    - name: Get name of build plugin archive
       shell: bash
-      run: TEMP_VAR="$(echo $(grep -lir 'for-mainframe' build))"
+      run: >
+        CURRENT_FILE_NAME_PATH="$(echo $(grep -lir 'for-mainframe' build))" &&
+        echo "Name of current file: $CURRENT_FILE_NAME_PATH"
 
-    - name: Generate final name for build plugin
+    - name: Generate new name for built plugin
       shell: bash
-      run: TEMP_VAR2="$(echo ${TEMP_VAR1%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" && echo $TEMP_VAR2
+      run: >
+        NEW_FILE_NAME="$(echo ${CURRENT_FILE_NAME_PATH%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
+        NEW_FILE_NAME=${NEW_FILE_NAME##*/} &&
+        echo "Name of new file: $NEW_FILE_NAME"
+
+    - name: Save new name of built plugin for deploy link
+      shell: bash
+      run: echo "##[set-output name=file_name;]$(echo $NEW_FILE_NAME)"
+      id: extract_file_name
 
     - name: Move built plugin to destination folder
       shell: bash
-      run: mkdir -p /var/www/plugin-builds/${{ steps.extract_branch.outputs.branch }} && mv $TEMP_VAR /var/www/plugin-builds/${{ steps.extract_branch.outputs.branch }}/$TEMP_VAR2
+      run: >
+        mkdir -p /var/www/plugin-builds/${{ steps.extract_branch.outputs.branch }} &&
+        mv $CURRENT_FILE_NAME_PATH /var/www/plugin-builds/${{ steps.extract_branch.outputs.branch }}/$NEW_FILE_NAME

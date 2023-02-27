@@ -90,7 +90,8 @@ jobs:
     - name: Generate name for built plugin archive
       shell: bash
 #      run: echo "##[set-output name=file_name;]$(echo $(grep -lir 'for-mainframe' build))"
-      run: TEMP_VAR1="$(echo $(grep -lir 'for-mainframe' build))"
+      run: >
+        TEMP_VAR1="$(echo $(grep -lir 'for-mainframe' build))"
 #      id: current_file_name
 
     - name: Generate

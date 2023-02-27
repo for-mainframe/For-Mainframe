@@ -90,14 +90,10 @@ jobs:
     - name: Generate name for built plugin archive
       shell: bash
       run: TEMP_VAR="$(echo $(grep -lir 'for-mainframe' build))"
-#      run: echo "##[set-output name=file_name;]$(echo $(grep -lir 'for-mainframe' build))"
-#      id: current_file_name
 
-    - name: Generate
+    - name: Generate final name for build plugin
       shell: bash
-      run: >
-#        TEMP_VAR2="$(echo ${ ${{ steps.current_file_name.outputs.file_name }}%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr : _)".zip"
-        TEMP_VAR2="$(echo ${TEMP_VAR1%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip"
+      run: TEMP_VAR2="$(echo ${TEMP_VAR1%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip"
 
     - name: Move built plugin to destination folder
       shell: bash

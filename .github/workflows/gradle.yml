@@ -39,18 +39,18 @@ jobs:
       run: gradle wrapper && ./gradlew buildPlugin
       shell: bash
 
+#    - name: Sonarcloud scans
+#      uses: ./.github/actions/sonar
+#      env:
+#        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+#        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+
     - name: Publish built plugin
       uses: actions/upload-artifact@v3
       with:
         name: builtPlugin
         path: ./build/distributions/
-
-    - name: Sonarcloud scans
-      uses: ./.github/actions/sonar
-      env:
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
 
   deploy:

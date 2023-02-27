@@ -65,13 +65,13 @@ jobs:
     concurrency: test
     environment:
       name: test
-      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.branch}}/${{ steps.extract_file_name.outputs.file_name }}
+      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.BRANCH_NAME}}/${{ steps.generate_file_name.outputs.FILE_NAME }}
 
     steps:
     - name: Extract branch name
-      shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       id: extract_branch
+      shell: bash
+      run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
 
     - name: Check current directory
       shell: bash
@@ -88,27 +88,24 @@ jobs:
       run: ls -la ./build/distributions
 
     - name: Get name of build plugin archive
+      id: getting_file_name
       shell: bash
       run: >
         CURRENT_FILE_NAME_PATH=$(echo $(find build -name "for-mainframe*")) &&
         echo "Name of current file: $CURRENT_FILE_NAME_PATH" &&
-        find build -name "for-mainframe*" &&
-        ls -la
+        echo "CURRENT_FILE_NAME=$CURRENT_FILE_NAME" >> $GITHUB_OUTPUT
 
     - name: Generate new name for built plugin
+      id: generate_file_name
       shell: bash
       run: >
-        NEW_FILE_NAME="$(echo ${CURRENT_FILE_NAME_PATH%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
+        NEW_FILE_NAME="$(echo ${${{steps.getting_file_name.outputs.CURRENT_FILE_NAME_PATH}}%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
         NEW_FILE_NAME=${NEW_FILE_NAME##*/} &&
-        echo "Name of new file: $NEW_FILE_NAME"
-
-    - name: Save new name of built plugin for deploy link
-      shell: bash
-      run: echo "##[set-output name=file_name;]$(echo $NEW_FILE_NAME)"
-      id: extract_file_name
+        echo "Name of new file: $NEW_FILE_NAME" &&
+        echo "NEW_FILE_NAME=$NEW_FILE_NAME" >> $GITHUB_OUTPUT
 
     - name: Move built plugin to destination folder
       shell: bash
       run: >
         mkdir -p /var/www/plugin-builds/${{ steps.extract_branch.outputs.branch }} &&
-        mv $CURRENT_FILE_NAME_PATH /var/www/plugin-builds/${{ steps.extract_branch.outputs.branch }}/$NEW_FILE_NAME
+        mv ${{ steps.getting_file_name.outputs.CURRENT_FILE_NAME_PATH }} /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}

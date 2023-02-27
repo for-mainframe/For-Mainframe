@@ -65,7 +65,7 @@ jobs:
     concurrency: test
     environment:
       name: test
-      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.BRANCH_NAME}}/${{ steps.generate_file_name.outputs.FILE_NAME }}
+      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.BRANCH_NAME}}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}
 
     steps:
     - name: Extract branch name
@@ -99,8 +99,8 @@ jobs:
       id: generate_file_name
       shell: bash
       run: >
-        echo ${{ steps.getting_file_name.outputs.CURRENT_FILE_NAME_PATH }}
-        NEW_FILE_NAME="$(echo ${${{steps.getting_file_name.outputs.CURRENT_FILE_NAME_PATH}}%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
+        TEMP_VAR=${{ steps.getting_file_name.outputs.CURRENT_FILE_NAME_PATH }}
+        NEW_FILE_NAME="$(echo ${TEMP_VAR%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
         NEW_FILE_NAME=${NEW_FILE_NAME##*/} &&
         echo "Name of new file: $NEW_FILE_NAME" &&
         echo "NEW_FILE_NAME=$NEW_FILE_NAME" >> $GITHUB_OUTPUT

@@ -99,7 +99,8 @@ jobs:
       id: generate_file_name
       shell: bash
       run: >
-        NEW_FILE_NAME="$(echo ${{{steps.getting_file_name.outputs.CURRENT_FILE_NAME_PATH}}%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
+        echo ${{steps.getting_file_name.outputs.CURRENT_FILE_NAME_PATH}}
+        NEW_FILE_NAME="$(echo ${${{steps.getting_file_name.outputs.CURRENT_FILE_NAME_PATH}}%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
         NEW_FILE_NAME=${NEW_FILE_NAME##*/} &&
         echo "Name of new file: $NEW_FILE_NAME" &&
         echo "NEW_FILE_NAME=$NEW_FILE_NAME" >> $GITHUB_OUTPUT

@@ -90,7 +90,7 @@ jobs:
     - name: Get name of build plugin archive
       shell: bash
       run: >
-        CURRENT_FILE_NAME_PATH=$(echo $(grep -lir "for-mainframe" build)) &&
+        CURRENT_FILE_NAME_PATH=$(echo $(grep -lir "for-mainframe" ./build)) &&
         echo "Name of current file: $CURRENT_FILE_NAME_PATH" &&
         echo $(grep -lir 'for-mainframe' build) &&
         ls -la

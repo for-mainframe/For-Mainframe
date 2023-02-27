@@ -126,6 +126,10 @@ tasks {
         }
       })
     )
+    reports {
+      xml.required.set(true)
+      xml.outputLocation.set(File("${buildDir}/reports/jacoco.xml"))
+    }
   }
 }
 

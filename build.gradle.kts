@@ -133,7 +133,9 @@ tasks {
     )
     reports {
       xml.required.set(true)
+      html.required.set(false)
       xml.outputLocation.set(File("${buildDir}/reports/jacoco.xml"))
+//      html.outputLocation.set(File("${buildDir}/reports/coverage"))
     }
   }
 }

@@ -18,4 +18,4 @@ runs:
         ./gradlew --info sonarqube
         -Dorg.gradle.jvmargs="-XX:MaxMetaspaceSize=512m"
         -Dresults="build/reports/tests/test,build/test-results/test,build/reports/jacoco/test/html"
-        -Psonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN"
+        -Psonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN

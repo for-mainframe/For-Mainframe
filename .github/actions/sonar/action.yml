@@ -15,6 +15,7 @@ runs:
     - name: Code coverage and publish results
       shell: bash
       run: >
+        gradle clean && gradle --stop &&
         ./gradlew --info sonarqube --warning-mode=all --stacktrace --scan --debug
         -Dorg.gradle.jvmargs="-XX:MaxMetaspaceSize=512m"
         -Dresults="build/reports/tests/test,build/test-results/test,build/reports/jacoco/test/html"

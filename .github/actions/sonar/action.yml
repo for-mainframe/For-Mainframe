@@ -15,7 +15,8 @@ runs:
     - name: Code coverage and publish results
       shell: bash
       run: >
-        ./gradlew --info sonarqube --warning-mode=all --stacktrace
+        ./gradlew --info sonarqube --warning-mode=all --stacktrace --gradle-version 8.0.2
         -Dorg.gradle.jvmargs="-XX:MaxMetaspaceSize=512m"
         -Dresults="build/reports/tests/test,build/test-results/test,build/reports/jacoco/test/html"
         -Psonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
+        -Dsonar.coverage.jacoco.xmlReportPaths="build/reports/jacoco.xml"

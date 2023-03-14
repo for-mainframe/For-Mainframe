@@ -19,11 +19,8 @@ String jiraTicket = ''
 def gitlabBranch = env.BRANCH_NAME
 properties([gitLabConnection('code.iby.scdc.io-connection')])
 
-
 // @NonCPS
 // def changeVersion(String xmlFile) {
-
-
 //     def xml = new XmlSlurper().parseText(xmlFile)
 //     println xml.'idea-version'.'@since-build'
 //     xml.'idea-version'.'@since-build' =  '203.7148.72'
@@ -33,7 +30,6 @@ properties([gitLabConnection('code.iby.scdc.io-connection')])
 
 
 //     return w.toString()
-
 // }
 
 pipeline{
@@ -88,10 +84,11 @@ pipeline{
         }
         stage('Build Plugin IDEA'){
             steps{
-                //sh 'sudo chmod +x /etc/profile.d/gradle.sh'
-                //sh 'sudo source /etc/profile.d/gradle.sh'
+                // sh 'sudo chmod +x /etc/profile.d/gradle.sh'
+                // sh 'sudo -s source /etc/profile.d/gradle.sh'
                 withGradle {
-                    //sh 'gradle -v'
+                    // To change Gradle version - Jenkins/Manage Jenkins/Global Tool Configuration
+                    // sh 'gradle -v'
                     sh 'gradle wrapper'
                     sh './gradlew buildPlugin'
                 }

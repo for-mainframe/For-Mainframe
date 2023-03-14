@@ -80,12 +80,12 @@ class ExplorerPasteProvider : PasteProvider {
       emptyList()
     }
     val destinationNodes = destinationFilesToRefresh
-      .map { file -> explorerView.myFsTreeStructure.findByVirtualFile(file) }
+      .map { file -> explorerView.myFsTreeStructure.findByVirtualFile(file).reversed() }
       .flatten()
       .distinct()
     return if (explorerView.isCut.get()) {
       val sourceNodesToRefresh = sourceFilesToRefresh
-        .map { file -> explorerView.myFsTreeStructure.findByVirtualFile(file).map { it.parent } }
+        .map { file -> explorerView.myFsTreeStructure.findByVirtualFile(file).reversed().map { it.parent } }
         .flatten()
         .filterNotNull()
         .distinct()
@@ -145,6 +145,7 @@ class ExplorerPasteProvider : PasteProvider {
               )
             )
         }
+        explorerView.ignoreVFileDeleteEvents.compareAndSet(false, true)
         it.text = "${op.source.name} to ${op.destination.name}"
         runCatching {
           dataOpsManager.performOperation(
@@ -347,6 +348,32 @@ class ExplorerPasteProvider : PasteProvider {
           }
         }
         .flatten()
+
+      val filesToDownload = operations
+        .filter { operation -> operation.destination !is MFVirtualFile }
+        .map { operation -> operation.source.name }
+
+      if (filesToDownload.isNotEmpty()) {
+        val tagP = "<p style=\"margin-left: 10px\">"
+        val filesStringToShow = if (filesToDownload.size > 5) {
+          "$tagP${filesToDownload.subList(0, 5).joinToString("</p>$tagP")}</p>${tagP}and ${filesToDownload.size - 5} more ...</p>"
+        } else {
+          "$tagP${filesToDownload.joinToString("</p>$tagP")}</p>"
+        }
+        if (
+          !showYesNoDialog(
+            "Downloading Files",
+            "<html><span>You are going to DOWNLOAD files:\n</span>\n$filesStringToShow\n" +
+              "<span>It may be against your company's security policy. Are you sure?</span></html>",
+            null,
+            "Yes",
+            "No",
+            AllIcons.General.WarningDialog
+          )
+        ) {
+          return
+        }
+      }
 
       val filesToMoveTotal = operations.size
       val hasLocalFilesInOperationsSources = operations.any { it.source !is MFVirtualFile }

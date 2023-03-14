@@ -16,6 +16,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
+import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tree.AsyncTreeModel
@@ -66,15 +67,14 @@ abstract class ExplorerTreeView<U : WorkingSet<*>, UnitConfig : EntityWithUuid>
   internal val cutProviderUpdater: (List<VirtualFile>) -> Unit
 ) : JBScrollPane(), DataProvider, Disposable {
 
-
   internal var mySelectedNodesData: List<NodeData> by rwLocked(listOf())
   internal val myFsTreeStructure: CommonExplorerTreeStructure<Explorer<U>>
   internal val myStructure: StructureTreeModel<CommonExplorerTreeStructure<Explorer<U>>>
   internal val myTree: Tree
   internal val myNodesToInvalidateOnExpand = hashSetOf<Any>()
+  internal val ignoreVFileDeleteEvents = AtomicBoolean(false)
 
   protected val dataOpsManager = explorer.componentManager.service<DataOpsManager>()
-  protected val ignoreVFileDeleteEvents = AtomicBoolean(false)
 
   private var treeModel: AsyncTreeModel
 
@@ -151,6 +151,7 @@ abstract class ExplorerTreeView<U : WorkingSet<*>, UnitConfig : EntityWithUuid>
           setViewportView(t)
           registerTreeListeners(t)
         }
+        myTree.putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
       }
     }
     subscribe(
@@ -232,7 +233,7 @@ abstract class ExplorerTreeView<U : WorkingSet<*>, UnitConfig : EntityWithUuid>
           .flatten()
           .distinct()
           .map {
-            myFsTreeStructure.findByVirtualFile(it)
+            myFsTreeStructure.findByVirtualFile(it).reversed()
           }.flatten()
           .distinct()
           .forEach {

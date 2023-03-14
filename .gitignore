@@ -8,7 +8,6 @@ gradle/wrapper/*
 !gradle/sonar.gradle
 build
 
-libs
 verifier-all.jar
 
 # Windows thumbnail cache files
@@ -32,3 +31,7 @@ $RECYCLE.BIN/
 # VS Code files
 bin
 .vscode
+
+# Fleet files
+.fleet
+.editorconfig

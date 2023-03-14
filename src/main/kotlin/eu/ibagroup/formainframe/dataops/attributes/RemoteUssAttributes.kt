@@ -11,13 +11,13 @@
 package eu.ibagroup.formainframe.dataops.attributes
 
 import eu.ibagroup.formainframe.config.connect.ConnectionConfig
-import eu.ibagroup.formainframe.config.connect.username
+import eu.ibagroup.formainframe.dataops.content.synchronizer.DEFAULT_BINARY_CHARSET
 import eu.ibagroup.formainframe.utils.Copyable
 import eu.ibagroup.formainframe.utils.clone
 import eu.ibagroup.r2z.FileMode
-import eu.ibagroup.r2z.FileModeValue
 import eu.ibagroup.r2z.UssFile
 import eu.ibagroup.r2z.XIBMDataType
+import java.nio.charset.Charset
 
 private const val CURRENT_DIR_NAME = "."
 
@@ -112,7 +112,8 @@ data class RemoteUssAttributes(
   val parentDirPath
     get() = path.substring(1).split(USS_DELIMITER).dropLast(1).joinToString(separator = USS_DELIMITER)
 
-  val isWritable: Boolean
+  val isWritable: Boolean = true
+    /* Commented out because the user may not be the owner of the file, but have write permissions
     get() {
       val hasFileOwnerInRequesters = requesters.any {
         runCatching { username(it.connectionConfig) }.getOrNull()?.equals(owner, ignoreCase = true) ?: false
@@ -127,8 +128,10 @@ data class RemoteUssAttributes(
               || mode == FileModeValue.READ_WRITE.mode
               || mode == FileModeValue.READ_WRITE_EXECUTE.mode
     }
+    */
 
-  val isReadable: Boolean
+  val isReadable: Boolean = true
+    /* Commented out because the user may not be the owner of the file, but have read permissions
     get() {
       val hasFileOwnerInRequesters = requesters.any {
         runCatching { username(it.connectionConfig) }.getOrNull()?.equals(owner, ignoreCase = true) ?: false
@@ -143,8 +146,10 @@ data class RemoteUssAttributes(
               || mode == FileModeValue.READ_EXECUTE.mode
               || mode == FileModeValue.READ_WRITE_EXECUTE.mode
     }
+    */
 
-  val isExecutable: Boolean
+  val isExecutable: Boolean = true
+    /* Commented out because the user may not be the owner of the file, but have execute permissions
     get() {
       val hasFileOwnerInRequesters = requesters.any { username(it.connectionConfig).equals(owner, ignoreCase = true) }
       val mode = if (hasFileOwnerInRequesters) {
@@ -157,8 +162,11 @@ data class RemoteUssAttributes(
               || mode == FileModeValue.WRITE_EXECUTE.mode
               || mode == FileModeValue.READ_WRITE_EXECUTE.mode
     }
+    */
 
-  override var contentMode: XIBMDataType = XIBMDataType(XIBMDataType.Type.TEXT)
+  var charset: Charset = DEFAULT_BINARY_CHARSET
+
+  override var contentMode: XIBMDataType = XIBMDataType(XIBMDataType.Type.BINARY)
 
   override val isCopyPossible: Boolean
     get() = true

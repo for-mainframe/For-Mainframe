@@ -40,7 +40,7 @@ jobs:
       shell: bash
 
     - name: Run tests
-      run: ./gradlew tests
+      run: ./gradlew test
       shell: bash
 
     - name: Sonarcloud scans

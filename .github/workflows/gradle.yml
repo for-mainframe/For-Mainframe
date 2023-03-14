@@ -39,6 +39,10 @@ jobs:
       run: gradle wrapper && ./gradlew buildPlugin
       shell: bash
 
+    - name: Run tests
+      run: ./gradlew tests
+      shell: bash
+
     - name: Sonarcloud scans
       uses: ./.github/actions/sonar
       env:

@@ -86,7 +86,7 @@ tasks {
 
   patchPluginXml {
     sinceBuild.set("223.7571")
-    untilBuild.set("231.*")
+    untilBuild.set("223.*")
     changeNotes.set(
       """
       <b>WARNING: </b> version 1.0 introduces breaking change. You won't be able to use the plugin with IntelliJ version less than 2022.3

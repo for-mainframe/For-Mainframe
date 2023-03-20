@@ -29,7 +29,7 @@ apply(plugin = "org.jetbrains.intellij")
 apply(from = "gradle/sonar.gradle")
 
 group = "eu.ibagroup"
-version = "1.0.0"
+version = "1.0.0-2022.3"
 val remoteRobotVersion = "0.11.16"
 
 repositories {

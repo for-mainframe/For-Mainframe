@@ -24,7 +24,7 @@ jobs:
     - name: Setup of environment
       uses: ./.github/actions/setup
 
-    - name: Check repopository content
+    - name: Check repository content
       shell: bash
       run: pwd && ls -la
 
@@ -114,5 +114,5 @@ jobs:
     - name: Sign archives
       shell: bash
       run: >
-        echo "$SIGN_ARCHIVE_SECRET" | gpg --import &&
+        echo "${{ secrets.SIGN_ARCHIVE_SECRET }}" | gpg --import &&
         gpg --detach-sign --armor /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}

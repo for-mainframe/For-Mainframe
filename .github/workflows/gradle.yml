@@ -114,5 +114,5 @@ jobs:
     - name: Sign archives
       shell: bash
       run: >
-        echo "${{ secrets.SIGN_ARCHIVE_SECRET }}" | gpg --import --no-tty && echo "it passed" &&
+        echo "${{ secrets.SIGN_ARCHIVE_SECRET }}" | gpg --import --batch && echo "it passed" &&
         gpg --detach-sign --armor /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}

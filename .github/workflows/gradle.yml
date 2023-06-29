@@ -115,4 +115,4 @@ jobs:
       shell: bash
       run: >
         echo "${{ secrets.SIGN_ARCHIVE_SECRET }}" | gpg --import --batch && echo "it passed" &&
-        gpg --batch --keyserver --detach-sign --armor /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}
+        gpg --detach-sign --armor /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}

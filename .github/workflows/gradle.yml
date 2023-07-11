@@ -114,7 +114,6 @@ jobs:
     - name: Sign archives
       shell: bash
       run: >
-#        echo "${{ secrets.SIGN_ARCHIVE_SECRET }}" |
         echo "${{ secrets.GPG_PASSPHRASE }}" |
         gpg --import --batch && 
         echo "it passed" &&

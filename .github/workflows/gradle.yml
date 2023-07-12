@@ -115,9 +115,13 @@ jobs:
       shell: bash
       run: >
         echo "${{ secrets.SIGN_ARCHIVE_SECRET }}" | gpg --import --batch && 
-        echo "it passed" &&
+        echo "import passed" &&
         echo "use-agent" >> ~/.gnupg/gpg.conf && 
+        echo "agent-write-to-file passed" &&
         echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf &&
+        echo "pinentry-mode write to file passed" &&
         export GPG_TTY=$(tty) &&
+        echo "export GPG tty variable passed" &&
         eval $(gpg-agent --daemon) &&
+        echo "starting gpg-agent passed" &&
         gpg --detach-sign --armor --output /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}.asc /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}

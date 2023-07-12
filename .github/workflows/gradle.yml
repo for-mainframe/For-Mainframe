@@ -114,7 +114,7 @@ jobs:
     - name: Sign archives
       shell: bash
       run: >
-        echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --import --batch && 
+        echo "${{ secrets.SIGN_ARCHIVE_SECRET }}" | gpg --import --batch && 
         echo "it passed" &&
         echo "use-agent" >> ~/.gnupg/gpg.conf && 
         echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf &&

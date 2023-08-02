@@ -63,7 +63,7 @@ jobs:
     runs-on: XBY_IJMP_machine
 
     env:
-      PATH_TO_STORAGE_FOLDER: /var/www/plugin-builds/${{GITHUB_REF#refs/heads/}}
+      PATH_TO_STORAGE_FOLDER: /var/www/plugin-builds/${GITHUB_REF#refs/heads/}
 
     concurrency: test
     environment:

@@ -21,6 +21,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Test env variable
+      shell: bash
+      run: echo $PATH_TO_STORAGE_FOLDER
+
     - name: Checkout of github repository
       uses: actions/checkout@v3
 

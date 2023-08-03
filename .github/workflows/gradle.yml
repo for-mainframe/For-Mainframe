@@ -104,13 +104,14 @@ jobs:
         NEW_FILE_NAME=${NEW_FILE_NAME##*/} &&
         echo "Name of new file: $NEW_FILE_NAME" &&
         echo "NEW_FILE_NAME=$NEW_FILE_NAME" >> $GITHUB_ENV &&
-        echo "NEW_FILE_PATH=/var/www/plugin-builds/$BRANCH_NAME/$NEW_FILE_NAME" >> $GITHUB_ENV
+        echo "NEW_FILE_PATH=/var/www/plugin-builds/$BRANCH_NAME/$NEW_FILE_NAME" >> $GITHUB_ENV &&
+        echo "Path to new file: $NEW_FILE_PATH"
 
     - name: Move built plugin to destination folder
       shell: bash
       run: >
         mkdir -p /var/www/plugin-builds/$BRANCH_NAME2 &&
-        mv $CURRENT_FILE_NAME_PATH $NEW_FILE_PATH
+        mv $CURRENT_FILE_PATH $NEW_FILE_PATH
 
     - name: Sign archives
       shell: bash

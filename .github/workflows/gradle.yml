@@ -73,7 +73,7 @@ jobs:
       shell: bash
       run: >
         echo "BRANCH_NAME2=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT && 
-        echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+        echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV &&
         echo "Github branch name is: $BRANCH_NAME"
 
     - name: Check current directory

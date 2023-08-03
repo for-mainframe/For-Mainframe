@@ -105,10 +105,11 @@ jobs:
         TEMP_VAR=$CURRENT_FILE_PATH
         NEW_FILE_NAME="$(echo ${TEMP_VAR%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
         NEW_FILE_NAME=${NEW_FILE_NAME##*/} &&
-        echo "Name of new file: $NEW_FILE_NAME" &&
         echo "NEW_FILE_NAME=$NEW_FILE_NAME" >> $GITHUB_ENV &&
+        echo "Name of new file: $NEW_FILE_NAME" &&
         echo "NEW_FILE_NAME2=$NEW_FILE_NAME" >> $GITHUB_OUTPUT &&
-        echo "NEW_FILE_PATH='/var/www/plugin-builds/$BRANCH_NAME/$NEW_FILE_NAME'" >> $GITHUB_ENV &&
+        NEW_FILE_PATH="/var/www/plugin-builds/$BRANCH_NAME/$NEW_FILE_NAME" &&
+        echo "NEW_FILE_PATH=$NEW_FILE_PATH" >> $GITHUB_ENV &&
         echo "Path to new file: $NEW_FILE_PATH"
 
     - name: Move built plugin to destination folder

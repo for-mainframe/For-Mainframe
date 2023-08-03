@@ -130,4 +130,4 @@ jobs:
         echo "export GPG tty variable passed" &&
         eval $(gpg-agent --daemon) &&
         echo "starting gpg-agent passed" &&
-        gpg --detach-sign --armor --output $NEW_FILE_PATH.asc $NEW_FILE_PATH
+        gpg --batch --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign --armor --output $NEW_FILE_PATH.asc $NEW_FILE_PATH

@@ -65,13 +65,16 @@ jobs:
     concurrency: test
     environment:
       name: test
-      url: http://178.172.233.157/plugin-builds/$BRANCH_NAME/$NEW_FILE_NAME
+      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.BRANCH_NAME2}}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME2 }}
 
     steps:
     - name: Extract branch name
       id: extract_branch
       shell: bash
-      run: echo "BRANCH_NAME2=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT && echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+      run: >
+        echo "BRANCH_NAME2=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT && 
+        echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+        echo "Github branch name is: $BRANCH_NAME"
 
     - name: Check current directory
       shell: bash
@@ -104,6 +107,7 @@ jobs:
         NEW_FILE_NAME=${NEW_FILE_NAME##*/} &&
         echo "Name of new file: $NEW_FILE_NAME" &&
         echo "NEW_FILE_NAME=$NEW_FILE_NAME" >> $GITHUB_ENV &&
+        echo "NEW_FILE_NAME2=$NEW_FILE_NAME" >> $GITHUB_OUTPUT &&
         echo "NEW_FILE_PATH=/var/www/plugin-builds/$BRANCH_NAME/$NEW_FILE_NAME" >> $GITHUB_ENV &&
         echo "Path to new file: $NEW_FILE_PATH"
 

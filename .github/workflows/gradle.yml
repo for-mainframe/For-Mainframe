@@ -62,23 +62,16 @@ jobs:
 
     runs-on: XBY_IJMP_machine
 
-    env:
-      PATH_TO_STORAGE_FOLDER: /var/www/plugin-builds/${GITHUB_REF#refs/heads/}
-
     concurrency: test
     environment:
       name: test
-      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.BRANCH_NAME}}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}
+      url: http://178.172.233.157/plugin-builds/$BRANCH_NAME/$NEW_FILE_NAME
 
     steps:
     - name: Extract branch name
       id: extract_branch
       shell: bash
-      run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT && echo "BRANCH_NAME2=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-
-    - name: Test branch name
-      shell: bash
-      run: echo $BRANCH_NAME2 && echo "This is another variable - $PATH_TO_STORAGE_FOLDER"
+      run: echo "BRANCH_NAME2=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT && echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
     - name: Check current directory
       shell: bash
@@ -98,25 +91,26 @@ jobs:
       id: getting_file_name
       shell: bash
       run: >
-        CURRENT_FILE_NAME_PATH=$(echo $(find build -name "for-mainframe*")) &&
-        echo "Name of current file: $CURRENT_FILE_NAME_PATH" &&
-        echo "CURRENT_FILE_NAME_PATH=$CURRENT_FILE_NAME_PATH" >> $GITHUB_OUTPUT
+        CURRENT_FILE_PATH=$(echo $(find build -name "for-mainframe*")) &&
+        echo "Name of current file: $CURRENT_FILE_PATH" &&
+        echo "CURRENT_FILE_PATH=$CURRENT_FILE_PATH" >> $GITHUB_ENV
 
     - name: Generate new name for built plugin
       id: generate_file_name
       shell: bash
       run: >
-        TEMP_VAR=${{ steps.getting_file_name.outputs.CURRENT_FILE_NAME_PATH }}
+        TEMP_VAR=$CURRENT_FILE_PATH
         NEW_FILE_NAME="$(echo ${TEMP_VAR%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
         NEW_FILE_NAME=${NEW_FILE_NAME##*/} &&
         echo "Name of new file: $NEW_FILE_NAME" &&
-        echo "NEW_FILE_NAME=$NEW_FILE_NAME" >> $GITHUB_OUTPUT
+        echo "NEW_FILE_NAME=$NEW_FILE_NAME" >> $GITHUB_ENV &&
+        echo "NEW_FILE_PATH=/var/www/plugin-builds/$BRANCH_NAME/$NEW_FILE_NAME" >> $GITHUB_ENV
 
     - name: Move built plugin to destination folder
       shell: bash
       run: >
-        mkdir -p /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }} &&
-        mv ${{ steps.getting_file_name.outputs.CURRENT_FILE_NAME_PATH }} /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}
+        mkdir -p /var/www/plugin-builds/$BRANCH_NAME2 &&
+        mv $CURRENT_FILE_NAME_PATH $NEW_FILE_PATH
 
     - name: Sign archives
       shell: bash
@@ -131,4 +125,4 @@ jobs:
         echo "export GPG tty variable passed" &&
         eval $(gpg-agent --daemon) &&
         echo "starting gpg-agent passed" &&
-        gpg --detach-sign --armor --output /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}.asc /var/www/plugin-builds/${{ steps.extract_branch.outputs.BRANCH_NAME }}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME }}
+        gpg --detach-sign --armor --output $NEW_FILE_PATH.asc $NEW_FILE_PATH

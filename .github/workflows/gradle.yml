@@ -121,7 +121,7 @@ jobs:
     - name: Sign archives
       shell: bash
       run: >
-        echo "${{ secrets.SIGN_ARCHIVE_SECRET }}" | gpg --import --batch && 
+        echo "${{ secrets.GPG_PUBLIC_KEY }}" | gpg --import --batch && 
         echo "import passed" &&
         echo "use-agent" >> ~/.gnupg/gpg.conf &&
         echo "agent-write-to-file passed" &&

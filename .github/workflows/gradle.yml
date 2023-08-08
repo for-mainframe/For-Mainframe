@@ -121,9 +121,9 @@ jobs:
     - name: Sign archives
       shell: bash
       run: >
-        echo ${{secrets.GPG_STRANGE_KEY}} >> private_encrypt.key
-        openssl aes-256-cbc -pass pass:${{ secrets.GPG_PASSPHRASE }} -in private_encrypt.key -out private.key -d
-        gpg --import private.key && 
+        echo ${{secrets.GPG_STRANGE_KEY}} >> private_encrypt.key &&
+        openssl aes-256-cbc -pass pass:${{ secrets.GPG_PASSPHRASE }} -in private_encrypt.key -out private.key -d &&
+        gpg --import private.key &&
         echo "import passed" &&
         echo "use-agent" >> ~/.gnupg/gpg.conf &&
         echo "agent-write-to-file passed" &&

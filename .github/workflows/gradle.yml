@@ -65,16 +65,16 @@ jobs:
     concurrency: test
     environment:
       name: test
-      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.BRANCH_NAME2}}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME2 }}
+      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.BRANCH_NAME_FOR_DEPLOY}}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME_FOR_DEPLOY }}
 
     steps:
     - name: Extract branch name
       id: extract_branch
       shell: bash
       run: >
-        echo "BRANCH_NAME2=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT && 
-        echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV &&
-        echo "Github branch name is: $BRANCH_NAME"
+        echo "BRANCH_NAME_FOR_DEPLOY=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT && 
+        echo "BRANCH_NAME_LOCAL=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV &&
+        echo "Github branch name is: $BRANCH_NAME_LOCAL"
 
     - name: Check current directory
       shell: bash
@@ -103,19 +103,19 @@ jobs:
       shell: bash
       run: >
         TEMP_VAR=$CURRENT_FILE_PATH
-        NEW_FILE_NAME="$(echo ${TEMP_VAR%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
-        NEW_FILE_NAME=${NEW_FILE_NAME##*/} &&
-        echo "NEW_FILE_NAME=$NEW_FILE_NAME" >> $GITHUB_ENV &&
-        echo "Name of new file: $NEW_FILE_NAME" &&
-        echo "NEW_FILE_NAME2=$NEW_FILE_NAME" >> $GITHUB_OUTPUT &&
-        NEW_FILE_PATH="/var/www/plugin-builds/$BRANCH_NAME/$NEW_FILE_NAME" &&
+        NEW_FILE_NAME_LOCAL="$(echo ${TEMP_VAR%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
+        NEW_FILE_NAME_LOCAL=${NEW_FILE_NAME_LOCAL##*/} &&
+        echo "NEW_FILE_NAME_LOCAL=$NEW_FILE_NAME_LOCAL" >> $GITHUB_ENV &&
+        echo "Name of new file: $NEW_FILE_NAME_LOCAL" &&
+        echo "NEW_FILE_NAME_FOR_DEPLOY=$NEW_FILE_NAME_LOCAL" >> $GITHUB_OUTPUT &&
+        NEW_FILE_PATH="/var/www/plugin-builds/$BRANCH_NAME_LOCAL/$NEW_FILE_NAME_LOCAL" &&
         echo "NEW_FILE_PATH=$NEW_FILE_PATH" >> $GITHUB_ENV &&
         echo "Path to new file: $NEW_FILE_PATH"
 
     - name: Move built plugin to destination folder
       shell: bash
       run: >
-        mkdir -p /var/www/plugin-builds/$BRANCH_NAME2 &&
+        mkdir -p /var/www/plugin-builds/$BRANCH_NAME_LOCAL &&
         mv $CURRENT_FILE_PATH $NEW_FILE_PATH
 
     - name: Sign archives

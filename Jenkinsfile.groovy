@@ -99,7 +99,7 @@ pipeline {
                     resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
                 }
                 sh """
-                java -jar /root/plugin-verifier/verifier-all.jar check-plugin build/distributions/$resultFileName
+                java -jar /plugin-verifier/verifier-all.jar check-plugin build/distributions/$resultFileName
                 """
             }
         }

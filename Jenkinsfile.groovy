@@ -99,11 +99,6 @@ pipeline {
                     resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
                 }
                 sh """
-                if [ -f "/plugin-verifier/verifier-all.jar" ] 
-                then
-                    rm /plugin-verifier/verifier-all.jar
-                    curl -s https://api.github.com/repos/JetBrains/intellij-plugin-verifier/releases/latest | jq -r '.assets[].browser_download_url' | xargs curl -L --output verifier-all.jar
-                fi
                 java -jar /plugin-verifier/verifier-all.jar check-plugin build/distributions/$resultFileName [latest-release-IU] [latest-IU] -verification-reports-dir /plugin-verifier/results
                 ls -la /plugin-verifier/results/
                 """

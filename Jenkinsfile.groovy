@@ -131,7 +131,7 @@ pipeline {
 
                     // Remove all other versions of verifiers in the folder
                     def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("") - "" - verifierCurrName
-                    echo pluginVerifiersToDelete
+                    echo pluginVerifiersToDelete.join(", ")
                     echo verifierCurrName
                     echo "Need to fail here"
                     // curl -O http://search.maven.org/remotecontent?filepath=log4j/log4j/1.2.17/log4j-1.2.17.jar

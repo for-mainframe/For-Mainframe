@@ -97,9 +97,9 @@ pipeline {
             steps {
                 // Setup plugin verifier
                 script {
-                    def hasPluginVerifierDir = !sh(returnStdout: true, script: "cat /plugin-verifier").contains('No such file or directory')
-                    def hasPluginVerifierIDEsDir = !sh(returnStdout: true, script: "cat /plugin-verifier/ides").contains('No such file or directory')
-                    def hasPluginVerifier = !sh(returnStdout: true, script: "ls -l /plugin-verifier/verifier.jar").contains('No such file or directory')
+                    def hasPluginVerifierDir = sh(returnStatus: true, script: "cat /plugin-verifier") == 0
+                    def hasPluginVerifierIDEsDir = sh(returnStatus: true, script: "cat /plugin-verifier/ides") == 0
+                    def hasPluginVerifier = sh(returnStatus: true, script: "ls -l /plugin-verifier/verifier.jar") == 0
 
                     if (!hasPluginVerifierDir) {
                         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier")

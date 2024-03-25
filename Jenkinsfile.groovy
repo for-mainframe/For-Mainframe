@@ -98,7 +98,7 @@ pipeline {
                 // Setup plugin verifier
                 script {
                     def hasPluginVerifierDir = sh(returnStatus: true, script: "cat /plugin-verifier")
-                    echo "$hasPluginVerifier"
+                    echo "$hasPluginVerifierDir"
                     error 'Need to fail here'
                     if (!hasPluginVerifierDir) {
                         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier")

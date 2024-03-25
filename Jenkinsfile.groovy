@@ -95,54 +95,56 @@ pipeline {
         // }
         stage('Check build with plugin verifier') {
             steps {
+                sh "pwd"
                 // Setup plugin verifier
-                script {
-                    // Create plugin verifier dirs if they are not created yet
-                    def hasPluginVerifierDir = sh(returnStatus: true, script: "ls /plugin-verifier") == 0
-                    if (!hasPluginVerifierDir) {
-                        sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier")
-                    }
+                // script {
 
-                    def hasPluginVerifierIDEsDir = sh(returnStatus: true, script: "ls /plugin-verifier/ides") == 0
-                    if (!hasPluginVerifierIDEsDir) {
-                        sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier/ides")
-                    }
+                //     // Create plugin verifier dirs if they are not created yet
+                //     def hasPluginVerifierDir = sh(returnStatus: true, script: "ls /plugin-verifier") == 0
+                //     if (!hasPluginVerifierDir) {
+                //         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier")
+                //     }
 
-                    def hasPluginVerifierJarsDir = sh(returnStatus: true, script: "ls /plugin-verifier/verifiers") == 0
-                    if (!hasPluginVerifierJarsDir) {
-                        sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier/verifiers")
-                    }
+                //     def hasPluginVerifierIDEsDir = sh(returnStatus: true, script: "ls /plugin-verifier/ides") == 0
+                //     if (!hasPluginVerifierIDEsDir) {
+                //         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier/ides")
+                //     }
 
-                    // Fetch info about the plugin verifier
-                    def verifierMavenCurlResp = sh(
-                        returnStdout: true,
-                            script: 'curl -s https://search.maven.org/solrsearch/select?q=g:"org.jetbrains.intellij.plugins"+AND+a:"verifier-cli"\\&wt=json | jq ".response"'
-                    )
+                //     def hasPluginVerifierJarsDir = sh(returnStatus: true, script: "ls /plugin-verifier/verifiers") == 0
+                //     if (!hasPluginVerifierJarsDir) {
+                //         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier/verifiers")
+                //     }
 
-                    // Check if there is only on e IntelliJ plugin verifier
-                    def numFound = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.numFound'").trim()
-                    if (numFound != "1") {
-                        error "Plugin verifier is not found (search in Maven Central gave incorrect number of found packages: $numFound)"
-                    }
+                //     // Fetch info about the plugin verifier
+                //     def verifierMavenCurlResp = sh(
+                //         returnStdout: true,
+                //             script: 'curl -s https://search.maven.org/solrsearch/select?q=g:"org.jetbrains.intellij.plugins"+AND+a:"verifier-cli"\\&wt=json | jq ".response"'
+                //     )
 
-                    // Define verifier's latest version and name to use later
-                    def latestVersion = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.docs[0].latestVersion'").trim().replace("\"", "")
-                    verifierCurrName = "verifier-cli-${latestVersion}.jar"
-                    echo "Verifier to use: $verifierCurrName"
+                //     // Check if there is only on e IntelliJ plugin verifier
+                //     def numFound = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.numFound'").trim()
+                //     if (numFound != "1") {
+                //         error "Plugin verifier is not found (search in Maven Central gave incorrect number of found packages: $numFound)"
+                //     }
 
-                    // Remove all other versions of verifiers in the folder
-                    def pluginVerifiersExisting = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.flatten()
-                    def pluginVerifiersToDelete = pluginVerifiersExisting - verifierCurrName
-                    pluginVerifiersToDelete.each { verifierName -> sh(returnStdout: false, script: "rm /plugin-verifier/verifiers/$verifierName") }
+                //     // Define verifier's latest version and name to use later
+                //     def latestVersion = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.docs[0].latestVersion'").trim().replace("\"", "")
+                //     verifierCurrName = "verifier-cli-${latestVersion}.jar"
+                //     echo "Verifier to use: $verifierCurrName"
 
-                    // Download latest verifier version if it is not already in place
-                    if (!pluginVerifiersExisting.contains(verifierCurrName)) {
-                        sh(returnStdout: false, script: "curl -O http://search.maven.org/remotecontent?filepath=org/jetbrains/intellij/plugins/verifier-cli/$latestVersion/$verifierCurrName -o '/plugin-verifier/verifiers/$verifierCurrName'")
-                        echo 'Latest verifier JAR is prepared successfully'
-                    } else {
-                        echo 'Latest verifier JAR is already prepared earlier'
-                    }
-                }
+                //     // Remove all other versions of verifiers in the folder
+                //     def pluginVerifiersExisting = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.flatten()
+                //     def pluginVerifiersToDelete = pluginVerifiersExisting - verifierCurrName
+                //     pluginVerifiersToDelete.each { verifierName -> sh(returnStdout: false, script: "rm /plugin-verifier/verifiers/$verifierName") }
+
+                //     // Download latest verifier version if it is not already in place
+                //     if (!pluginVerifiersExisting.contains(verifierCurrName)) {
+                //         sh(returnStdout: false, script: "curl -O http://search.maven.org/remotecontent?filepath=org/jetbrains/intellij/plugins/verifier-cli/$latestVersion/$verifierCurrName -o '/plugin-verifier/verifiers/$verifierCurrName'")
+                //         echo 'Latest verifier JAR is prepared successfully'
+                //     } else {
+                //         echo 'Latest verifier JAR is already prepared earlier'
+                //     }
+                // }
 
 
                 // script {

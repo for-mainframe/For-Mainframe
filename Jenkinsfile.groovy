@@ -127,15 +127,13 @@ pipeline {
 
                     // Define verifier's latest version and name to use later
                     def latestVersion = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.docs[0].latestVersion'").trim()
-                    verifierCurrName = "verifier-cli-" + latestVersion + ".jar"
+                    verifierCurrName = "verifier-cli-" + latestVersion.replace("\"", "") + ".jar"
 
                     // Remove all other versions of verifiers in the folder
                     // def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.inject([]) { result, nextArray -> result + nextArray } - verifierCurrName
                     def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.flatten() - verifierCurrName
                     echo pluginVerifiersToDelete.join(", ")
-                    for (name in pluginVerifiersToDelete) {
-                        sh(returnStdout: false, script: "rm /plugin-verifier/verifiers/$name")
-                    }
+                    pluginVerifiersToDelete.each { verifierName -> sh(returnStdout: false, script: "rm /plugin-verifier/verifiers/$verifierName") }
                     sh(returnStdout: true, script: "ls /plugin-verifier/verifiers")
                     echo verifierCurrName
                     // curl -O http://search.maven.org/remotecontent?filepath=log4j/log4j/1.2.17/log4j-1.2.17.jar

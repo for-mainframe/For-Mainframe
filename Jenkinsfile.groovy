@@ -130,7 +130,7 @@ pipeline {
                     verifierCurrName = "verifier-cli-" + latestVersion + ".jar"
 
                     // Remove all other versions of verifiers in the folder
-                    def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("") - "" - verifierCurrName
+                    def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n") - "" - verifierCurrName
                     echo pluginVerifiersToDelete.join(", ")
                     for (name in pluginVerifiersToDelete) {
                         sh(returnStdout: false, script: "rm /plugin-verifier/verifiers/$name")

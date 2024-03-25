@@ -109,7 +109,7 @@ pipeline {
                     }
 
                     def hasPluginVerifierJarsDir = sh(returnStatus: true, script: "ls /plugin-verifier/verifiers") == 0
-                    if (!hasPluginVerifierIDEsDir) {
+                    if (!hasPluginVerifierJarsDir) {
                         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier/verifiers")
                     }
 
@@ -130,7 +130,7 @@ pipeline {
                     verifierCurrName = "verifier-cli-${latestVersion}.jar"
 
                     // Remove all other versions of verifiers in the folder
-                    def pluginVerifiersToDelete = sh(returnOutput: true, script: "ls /plugin-verifier/verifiers").split("") - "" - verifierCurrName
+                    def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("") - "" - verifierCurrName
                     echo pluginVerifiersToDelete
                     echo verifierCurrName
                     echo "Need to fail here"

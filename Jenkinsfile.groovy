@@ -97,6 +97,7 @@ pipeline {
             steps {
                 // Setup plugin verifier
                 script {
+                    // Create plugin verifier dirs if they are not created yet
                     def hasPluginVerifierDir = sh(returnStatus: true, script: "ls /plugin-verifier") == 0
                     if (!hasPluginVerifierDir) {
                         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier")
@@ -107,24 +108,38 @@ pipeline {
                         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier/ides")
                     }
 
-                    def hasPluginVerifier = sh(returnStatus: true, script: "ls /plugin-verifier/verifier.jar") == 0
-                    if (!hasPluginVerifier) {
-                        def verifierMavenCurlResp = sh(
-                            returnStdout: true,
-                             script: 'curl -s https://search.maven.org/solrsearch/select?q=g:"org.jetbrains.intellij.plugins"+AND+a:"verifier-cli"\\&wt=json | jq ".response"'
-                        )
-                        def numFound = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' | jq '.numFound'")
-                        echo numFound
-                        echo 'Need to fail here'
-                        if (numFound != 1) {
-                            error "Plugin verifier is not found (search in Maven Central gave incorrect number of found packages: $numFound)"
-                        }
-                        echo 'Success'
-                        // TODO: GitHub API requests limit in action here:
-                        // curl -s https://api.github.com/repos/JetBrains/intellij-plugin-verifier/releases/latest \
-                        //     | jq -r '.assets[].browser_download_url' \
-                        //     | xargs curl -L --output verifier-all.jar
+                    def hasPluginVerifierJarsDir = sh(returnStatus: true, script: "ls /plugin-verifier/verifiers") == 0
+                    if (!hasPluginVerifierIDEsDir) {
+                        sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier/verifiers")
                     }
+
+                    // Fetch info about the plugin verifier
+                    def verifierMavenCurlResp = sh(
+                        returnStdout: true,
+                            script: 'curl -s https://search.maven.org/solrsearch/select?q=g:"org.jetbrains.intellij.plugins"+AND+a:"verifier-cli"\\&wt=json | jq ".response"'
+                    )
+
+                    // Check if there is only on e IntelliJ plugin verifier
+                    def numFound = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' | jq '.numFound'")
+                    if (numFound != 1) {
+                        error "Plugin verifier is not found (search in Maven Central gave incorrect number of found packages: $numFound)"
+                    }
+
+                    // Define verifier's latest version and name to use later
+                    def latestVersion = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' | jq '.docs[0].latestVersion'")
+                    verifierCurrName = "verifier-cli-${latestVersion}.jar"
+
+                    // Remove all other versions of verifiers in the folder
+                    def pluginVerifiersToDelete = sh(returnOutput: true, script: "ls /plugin-verifier/verifiers").split("") - "" - verifierCurrName
+                    echo pluginVerifiersToDelete
+                    echo verifierCurrName
+                    echo "Need to fail here"
+                    // curl -O http://search.maven.org/remotecontent?filepath=log4j/log4j/1.2.17/log4j-1.2.17.jar
+                    echo 'Success'
+                    // TODO: GitHub API requests limit in action here:
+                    // curl -s https://api.github.com/repos/JetBrains/intellij-plugin-verifier/releases/latest \
+                    //     | jq -r '.assets[].browser_download_url' \
+                    //     | xargs curl -L --output verifier-all.jar
                 }
 
 

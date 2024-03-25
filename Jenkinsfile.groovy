@@ -126,22 +126,22 @@ pipeline {
                     }
 
                     // Define verifier's latest version and name to use later
-                    def latestVersion = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.docs[0].latestVersion'").trim()
-                    verifierCurrName = "verifier-cli-" + latestVersion.replace("\"", "") + ".jar"
+                    def latestVersion = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.docs[0].latestVersion'").trim().replace("\"", "")
+                    verifierCurrName = "verifier-cli-${latestVersion}.jar"
+                    echo "Verifier to use: $verifierCurrName"
 
                     // Remove all other versions of verifiers in the folder
-                    // def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.inject([]) { result, nextArray -> result + nextArray } - verifierCurrName
-                    def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.flatten() - verifierCurrName
-                    echo pluginVerifiersToDelete.join(", ")
+                    def pluginVerifiersExisting = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.flatten()
+                    def pluginVerifiersToDelete = pluginVerifiersExisting - verifierCurrName
                     pluginVerifiersToDelete.each { verifierName -> sh(returnStdout: false, script: "rm /plugin-verifier/verifiers/$verifierName") }
-                    sh(returnStdout: true, script: "ls /plugin-verifier/verifiers")
-                    echo verifierCurrName
-                    // curl -O http://search.maven.org/remotecontent?filepath=log4j/log4j/1.2.17/log4j-1.2.17.jar
-                    echo 'Success'
-                    // TODO: GitHub API requests limit in action here:
-                    // curl -s https://api.github.com/repos/JetBrains/intellij-plugin-verifier/releases/latest \
-                    //     | jq -r '.assets[].browser_download_url' \
-                    //     | xargs curl -L --output verifier-all.jar
+
+                    // Download latest verifier version if it is not already in place
+                    if (!pluginVerifiersExisting.contains(verifierCurrName)) {
+                        sh(returnStdout: false, script: "curl -O http://search.maven.org/remotecontent?filepath=org/jetbrains/intellij/plugins/verifier-cli/$latestVersion/$verifierCurrName -o '/plugin-verifier/verifiers/$verifierCurrName'")
+                        echo 'Latest verifier JAR is prepared successfully'
+                    } else {
+                        echo 'Latest verifier JAR is already prepared earlier'
+                    }
                 }
 
 

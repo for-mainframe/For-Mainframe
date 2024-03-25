@@ -99,7 +99,7 @@ pipeline {
                 script {
 
                     // Create plugin verifier dirs if they are not created yet
-                    def hasPluginVerifierDir = sh(returnStatus: true, script: "ls /plugin-verifier") == 0
+                    def hasPluginVerifierDir = sh(returnStatus: true, script: "ls $JENKINS_HOME/plugin-verifier") == 0
                     if (!hasPluginVerifierDir) {
                         sh(returnStdout: false, script: "mkdir -m 775 $JENKINS_HOME/plugin-verifier")
                     }

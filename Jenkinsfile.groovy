@@ -111,7 +111,7 @@ pipeline {
                     if (!hasPluginVerifier) {
                         def verifierMavenCurlResp = sh(
                             returnStdout: true,
-                             script: 'curl -s https://search.maven.org/solrsearch/select?q=g:"org.jetbrains.intellij.plugins"+AND+a:"verifier-cli"&wt=json | jq ".response"'
+                             script: 'curl -s https://search.maven.org/solrsearch/select?q=g:"org.jetbrains.intellij.plugins"+AND+a:"verifier-cli"\&wt=json | jq ".response"'
                         )
                         def numFound = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' | jq '.numFound'")
                         echo numFound

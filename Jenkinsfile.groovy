@@ -96,6 +96,7 @@ pipeline {
         stage('Check build with plugin verifier') {
             steps {
                 sh "pwd"
+                sh "echo \$JENKINS_HOME"
                 // Setup plugin verifier
                 // script {
 

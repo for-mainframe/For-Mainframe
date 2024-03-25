@@ -120,20 +120,20 @@ pipeline {
                     )
 
                     // Check if there is only on e IntelliJ plugin verifier
-                    def numFound = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' | jq '.numFound'").trim()
+                    def numFound = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' \\| jq '.numFound'").trim()
                     if (numFound != "1") {
                         error "Plugin verifier is not found (search in Maven Central gave incorrect number of found packages: $numFound)"
                     }
 
                     // Define verifier's latest version and name to use later
-                    def latestVersion = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' | jq '.docs[0].latestVersion'").trim()
-                    verifierCurrName = "verifier-cli-${latestVersion}.jar"
+                    def latestVersion = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' \\| jq '.docs[0].latestVersion'").trim()
+                    verifierCurrName = "verifier-cli-" + latestVersion + ".jar"
 
                     // Remove all other versions of verifiers in the folder
                     def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("") - "" - verifierCurrName
-                    echo pluginVerifiersToDelete.join(", ")
+                    pluginVerifiersToDelete.each { index, name -> sh(returnStdout: false, script: "rm /plugin-verifier/verifiers/$name") }
+                    sh(returnStdout: true, script: "ls /plugin-verifier/verifiers")
                     echo verifierCurrName
-                    echo "Need to fail here"
                     // curl -O http://search.maven.org/remotecontent?filepath=log4j/log4j/1.2.17/log4j-1.2.17.jar
                     echo 'Success'
                     // TODO: GitHub API requests limit in action here:

@@ -131,7 +131,7 @@ pipeline {
 
                     // Remove all other versions of verifiers in the folder
                     // def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.inject([]) { result, nextArray -> result + nextArray } - verifierCurrName
-                    def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" } - verifierCurrName
+                    def pluginVerifiersToDelete = sh(returnStdout: true, script: "ls /plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.flatten() - verifierCurrName
                     echo pluginVerifiersToDelete.join(", ")
                     for (name in pluginVerifiersToDelete) {
                         sh(returnStdout: false, script: "rm /plugin-verifier/verifiers/$name")

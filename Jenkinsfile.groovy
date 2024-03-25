@@ -48,102 +48,135 @@ pipeline {
                 sh 'java -version'
             }
         }
-        stage('Get Jira Ticket') {
-            steps {
-                echo gitlabBranch
-                script {
-                    if (gitlabBranch.equals("development")) {
-                        jiraTicket = 'development'
-                    } else if (gitlabBranch.equals("zowe-development")) {
-                        jiraTicket = 'zowe-development'
-                    } else if (gitlabBranch.contains("release")) {
-                        jiraTicket = gitlabBranch
-                    } else {
-                        def pattern = ~/(?i)ijmp-\d+/
-                        def matcher = gitlabBranch =~ pattern
-                        if (matcher.find()) {
-                            jiraTicket = matcher[0].toUpperCase()
-                        } else {
-                            jiraTicket = "null"
-                            echo "Jira ticket name wasn't found!"
-                        }
-                    }
-                }
-                echo "Jira ticket: $jiraTicket"
-            }
-        }
-        stage('Clone Branch') {
-            steps {
-                cleanWs()
-                sh "ls -la"
-                git branch: "$gitlabBranch", credentialsId: "$gitCredentialsId", url: "$gitUrl"
-            }
-        }
-        stage('Build Plugin IDEA') {
-            steps {
-                // sh 'sudo chmod +x /etc/profile.d/gradle.sh'
-                // sh 'sudo -s source /etc/profile.d/gradle.sh'
-                withGradle {
-                    // To change Gradle version - Jenkins/Manage Jenkins/Global Tool Configuration
-                    // sh 'gradle -v'
-                    sh 'gradle wrapper'
-                    sh './gradlew -v'
-                    sh './gradlew test'
-                    sh './gradlew buildPlugin'
-                }
-            }
-        }
+        // stage('Get Jira Ticket') {
+        //     steps {
+        //         echo gitlabBranch
+        //         script {
+        //             if (gitlabBranch.equals("development")) {
+        //                 jiraTicket = 'development'
+        //             } else if (gitlabBranch.equals("zowe-development")) {
+        //                 jiraTicket = 'zowe-development'
+        //             } else if (gitlabBranch.contains("release")) {
+        //                 jiraTicket = gitlabBranch
+        //             } else {
+        //                 def pattern = ~/(?i)ijmp-\d+/
+        //                 def matcher = gitlabBranch =~ pattern
+        //                 if (matcher.find()) {
+        //                     jiraTicket = matcher[0].toUpperCase()
+        //                 } else {
+        //                     jiraTicket = "null"
+        //                     echo "Jira ticket name wasn't found!"
+        //                 }
+        //             }
+        //         }
+        //         echo "Jira ticket: $jiraTicket"
+        //     }
+        // }
+        // stage('Clone Branch') {
+        //     steps {
+        //         cleanWs()
+        //         sh "ls -la"
+        //         git branch: "$gitlabBranch", credentialsId: "$gitCredentialsId", url: "$gitUrl"
+        //     }
+        // }
+        // stage('Build Plugin IDEA') {
+        //     steps {
+        //         // sh 'sudo chmod +x /etc/profile.d/gradle.sh'
+        //         // sh 'sudo -s source /etc/profile.d/gradle.sh'
+        //         withGradle {
+        //             // To change Gradle version - Jenkins/Manage Jenkins/Global Tool Configuration
+        //             // sh 'gradle -v'
+        //             sh 'gradle wrapper'
+        //             sh './gradlew -v'
+        //             sh './gradlew test'
+        //             sh './gradlew buildPlugin'
+        //         }
+        //     }
+        // }
         stage('Check build with plugin verifier') {
             steps {
-                script{
-                    resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
-                }
-                sh """
-                java -jar /plugin-verifier/verifier-all.jar check-plugin build/distributions/$resultFileName [latest-release-IU] [latest-IU] -verification-reports-dir /plugin-verifier/results
-                ls -la /plugin-verifier/results/
-                """
-            }
-        }
-        stage('Move to the AWS - IDEA') {
-            steps {
+                // Setup plugin verifier
                 script {
-                    resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
-                }
-                sh """
-                if [ "$jiraTicket" = "null" ]
-                then
-                    echo "jira ticket is not determined"
-                else
-                    if [ -d "/var/www/ijmp-plugin/$jiraTicket" ]
-                    then
-                        sudo rm -r /var/www/ijmp-plugin/$jiraTicket
-                    fi
-                    sudo mkdir -p /var/www/ijmp-plugin/$jiraTicket
-                    sudo mkdir /var/www/ijmp-plugin/$jiraTicket/idea
-                    sudo mkdir /var/www/ijmp-plugin/$jiraTicket/pycharm
+                    def hasPluginVerifierDir = !sh(returnStdout: true, script: "cat /plugin-verifier").contains('No such file or directory')
+                    def hasPluginVerifierIDEsDir = !sh(returnStdout: true, script: "cat /plugin-verifier/ides").contains('No such file or directory')
+                    def hasPluginVerifier = !sh(returnStdout: true, script: "ls -l /plugin-verifier/verifier.jar").contains('No such file or directory')
 
-                    sudo mv build/distributions/$resultFileName /var/www/ijmp-plugin/$jiraTicket/idea
-                fi
-                """
-            }
-            post {
-                success {
-                    script {
-                        if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
-                            jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch was successfully built. You can download your build from the following link $apacheInternalUrl/ijmp-plugin/$jiraTicket/idea/$resultFileName.", site: "$jiraSite"
+                    if (!hasPluginVerifierDir) {
+                        sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier")
+                    }
+                    if (!hasPluginVerifierIDEsDir) {
+                        sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier/ides")
+                    }
+                    if (!hasPluginVerifier) {
+                        def verifierMavenCurlResp = sh(
+                            returnStdout: true,
+                             script: """
+                                     curl -s https://search.maven.org/solrsearch/select?q=g:"org.jetbrains.intellij.plugins"+AND+a:"verifier-cli"&wt=json
+                                         | jq ".response"
+                                     """
+                        )
+                        def numFound = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' | jq '.numFound'")
+                        if (numFound != 1) {
+                            error "Plugin verifier is not found (search in Maven Central gave incorrect number of found packages: $numFound)"
                         }
-
+                        echo 'Success'
+                        // TODO: GitHub API requests limit in action here:
+                        // curl -s https://api.github.com/repos/JetBrains/intellij-plugin-verifier/releases/latest \
+                        //     | jq -r '.assets[].browser_download_url' \
+                        //     | xargs curl -L --output verifier-all.jar
                     }
                 }
-                failure {
-                    script {
-                        if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
-                            jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch failed to build for Intellij IDEA. You can get console output by the following link $jenkinsServerUrl/job/BuildPluginPipeline/", site: "$jiraSite"
-                        }
-                    }
-                }
+
+
+                // script {
+                //     resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
+                // }
+                // sh """
+                // java -jar /plugin-verifier/verifier-all.jar check-plugin build/distributions/$resultFileName [latest-release-IU] [latest-IU] -verification-reports-dir /plugin-verifier/results
+                // ls -la /plugin-verifier/results/
+                // """
             }
         }
+        // stage('Move to the AWS - IDEA') {
+        //     steps {
+        //         script {
+        //             resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
+        //         }
+        //         sh """
+        //         if [ "$jiraTicket" = "null" ]
+        //         then
+        //             echo "jira ticket is not determined"
+        //         else
+        //             if [ -d "/var/www/ijmp-plugin/$jiraTicket" ]
+        //             then
+        //                 sudo rm -r /var/www/ijmp-plugin/$jiraTicket
+        //             fi
+        //             sudo mkdir -p /var/www/ijmp-plugin/$jiraTicket
+        //             sudo mkdir /var/www/ijmp-plugin/$jiraTicket/idea
+        //             sudo mkdir /var/www/ijmp-plugin/$jiraTicket/pycharm
+
+        //             sudo mv build/distributions/$resultFileName /var/www/ijmp-plugin/$jiraTicket/idea
+        //         fi
+        //         """
+        //     }
+        //     post {
+        //         success {
+        //             script {
+        //                 if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
+        //                     jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch was successfully built. You can download your build from the following link $apacheInternalUrl/ijmp-plugin/$jiraTicket/idea/$resultFileName.", site: "$jiraSite"
+        //                 }
+
+        //             }
+        //         }
+        //         failure {
+        //             script {
+        //                 if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
+        //                     jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch failed to build for Intellij IDEA. You can get console output by the following link $jenkinsServerUrl/job/BuildPluginPipeline/", site: "$jiraSite"
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         // stage('Change Plugin Version'){
         //     steps{
@@ -152,48 +185,5 @@ pipeline {
         //             def res = changeVersion(xmlFileData)
         //             writeFile file: "src/main/resources/META-INF/plugin.xml", text: res
         //         }
-
-        //     }
-        // }
-        // stage('Build Plugin PyCharm'){
-        //     steps{
-        //         //sh 'sudo chmod +x /etc/profile.d/gradle.sh'
-        //         //sh 'sudo source /etc/profile.d/gradle.sh'
-        //         withGradle {
-        //             //sh 'gradle -v'
-        //             sh 'gradle wrapper'
-        //             sh './gradlew buildPlugin'
-        //         }
-        //     }
-        // }
-        // stage('Move to the AWS - PyCharm'){
-        //     steps{
-        //         script{
-        //             resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
-        //         }
-        //         sh "sudo mv build/distributions/$resultFileName /var/www/ijmp-plugin/$jiraTicket/pycharm"
-        //     }
-        //     post{
-        //         success {
-        //             script{
-        //                 if(!jiraTicket.contains('release') && !'development'.equals(jiraTicket)){
-        //                     jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch was successfully built for PyCharm version. You can download your build from the following link http://10.221.23.186/ijmp-plugin/$jiraTicket/pycharm/$resultFileName.", site:"$jiraSite"
-        //                 }
-
-        //             }
-        //         }
-        //         failure {
-        //             script{
-        //                 if(!jiraTicket.contains('release') && !'development'.equals(jiraTicket)){
-        //                     jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch failed to build for PyCharm. You can get console output by the following link http://10.221.23.186:8080/job/BuildPluginPipeline/", site:"$jiraSite"
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-
     }
-
-
 }

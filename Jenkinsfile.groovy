@@ -93,6 +93,16 @@ pipeline {
                 }
             }
         }
+        stage('Check build with plugin verifier') {
+            steps {
+                script{
+                    resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
+                }
+                sh """
+                java -jar /root/plugin-verifier/verifier-all.jar check-plugin build/distributions/$resultFileName
+                """
+            }
+        }
         stage('Move to the AWS - IDEA') {
             steps {
                 script {

@@ -97,19 +97,17 @@ pipeline {
             steps {
                 // Setup plugin verifier
                 script {
-                    def hasPluginVerifierDir = sh(returnStatus: true, script: "cat /plugin-verifier") == 0
-                    echo "$hasPluginVerifierDir"
-                    error 'Need to fail here'
+                    def hasPluginVerifierDir = sh(returnStatus: true, script: "ls /plugin-verifier") == 0
                     if (!hasPluginVerifierDir) {
                         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier")
                     }
 
-                    def hasPluginVerifierIDEsDir = sh(returnStatus: true, script: "cat /plugin-verifier/ides") == 0
+                    def hasPluginVerifierIDEsDir = sh(returnStatus: true, script: "ls /plugin-verifier/ides") == 0
                     if (!hasPluginVerifierIDEsDir) {
                         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier/ides")
                     }
 
-                    def hasPluginVerifier = sh(returnStatus: true, script: "ls -l /plugin-verifier/verifier.jar") == 0
+                    def hasPluginVerifier = sh(returnStatus: true, script: "ls /plugin-verifier/verifier.jar") == 0
                     if (!hasPluginVerifier) {
                         def verifierMavenCurlResp = sh(
                             returnStdout: true,
@@ -119,6 +117,8 @@ pipeline {
                                      """
                         )
                         def numFound = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' | jq '.numFound'")
+                        echo numFound
+                        echo 'Need to fail here'
                         if (numFound != 1) {
                             error "Plugin verifier is not found (search in Maven Central gave incorrect number of found packages: $numFound)"
                         }

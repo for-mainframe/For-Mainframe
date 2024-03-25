@@ -121,7 +121,7 @@ pipeline {
 
                     // Check if there is only on e IntelliJ plugin verifier
                     def numFound = sh(returnStdout: true, script: "echo '$verifierMavenCurlResp' | jq '.numFound'")
-                    if (numFound != 1) {
+                    if (numFound != "1") {
                         error "Plugin verifier is not found (search in Maven Central gave incorrect number of found packages: $numFound)"
                     }
 

@@ -97,16 +97,19 @@ pipeline {
             steps {
                 // Setup plugin verifier
                 script {
-                    def hasPluginVerifierDir = sh(returnStatus: true, script: "cat /plugin-verifier") == 0
-                    def hasPluginVerifierIDEsDir = sh(returnStatus: true, script: "cat /plugin-verifier/ides") == 0
-                    def hasPluginVerifier = sh(returnStatus: true, script: "ls -l /plugin-verifier/verifier.jar") == 0
-
+                    def hasPluginVerifierDir = sh(returnStatus: true, script: "cat /plugin-verifier")
+                    echo "$hasPluginVerifier"
+                    error 'Need to fail here'
                     if (!hasPluginVerifierDir) {
                         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier")
                     }
+
+                    def hasPluginVerifierIDEsDir = sh(returnStatus: true, script: "cat /plugin-verifier/ides") == 0
                     if (!hasPluginVerifierIDEsDir) {
                         sh(returnStdout: false, script: "mkdir -m 775 /plugin-verifier/ides")
                     }
+
+                    def hasPluginVerifier = sh(returnStatus: true, script: "ls -l /plugin-verifier/verifier.jar") == 0
                     if (!hasPluginVerifier) {
                         def verifierMavenCurlResp = sh(
                             returnStdout: true,

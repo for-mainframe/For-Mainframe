@@ -98,7 +98,7 @@ pipeline {
                 withGradle {
                     script {
                         // if (gitlabBranch.contains("release")) {
-                        if (gitlabBranch.contains("feature/IJMP-1401-plugin-verifier-jenkins"))
+                        if (gitlabBranch.contains("feature/IJMP-1401-plugin-verifier-jenkins")) {
                             sh './gradlew runPluginVerifier'
                         } else {
                             echo 'Plugin verification is skipped as the branch to verify is not a release branch'

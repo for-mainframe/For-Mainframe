@@ -48,113 +48,125 @@ pipeline {
                 sh 'java -version'
             }
         }
-        // stage('Get Jira Ticket') {
+        stage('Get Jira Ticket') {
+            steps {
+                echo gitlabBranch
+                script {
+                    if (gitlabBranch.equals("development")) {
+                        jiraTicket = 'development'
+                    } else if (gitlabBranch.equals("zowe-development")) {
+                        jiraTicket = 'zowe-development'
+                    } else if (gitlabBranch.contains("release")) {
+                        jiraTicket = gitlabBranch
+                    } else {
+                        def pattern = ~/(?i)ijmp-\d+/
+                        def matcher = gitlabBranch =~ pattern
+                        if (matcher.find()) {
+                            jiraTicket = matcher[0].toUpperCase()
+                        } else {
+                            jiraTicket = "null"
+                            echo "Jira ticket name wasn't found!"
+                        }
+                    }
+                }
+                echo "Jira ticket: $jiraTicket"
+            }
+        }
+        stage('Clone Branch') {
+            steps {
+                cleanWs()
+                sh "ls -la"
+                git branch: "$gitlabBranch", credentialsId: "$gitCredentialsId", url: "$gitUrl"
+            }
+        }
+        stage('Build Plugin IDEA') {
+            steps {
+                // sh 'sudo chmod +x /etc/profile.d/gradle.sh'
+                // sh 'sudo -s source /etc/profile.d/gradle.sh'
+                withGradle {
+                    // To change Gradle version - Jenkins/Manage Jenkins/Global Tool Configuration
+                    // sh 'gradle -v'
+                    sh 'gradle wrapper'
+                    sh './gradlew -v'
+                    sh './gradlew test'
+                    sh './gradlew buildPlugin'
+                    sh './gradlew runPluginVerifier'
+                }
+            }
+        }
+        // stage('Prepare plugin verifier and IDE before check') {
         //     steps {
-        //         echo gitlabBranch
-        //         script {
-        //             if (gitlabBranch.equals("development")) {
-        //                 jiraTicket = 'development'
-        //             } else if (gitlabBranch.equals("zowe-development")) {
-        //                 jiraTicket = 'zowe-development'
-        //             } else if (gitlabBranch.contains("release")) {
-        //                 jiraTicket = gitlabBranch
-        //             } else {
-        //                 def pattern = ~/(?i)ijmp-\d+/
-        //                 def matcher = gitlabBranch =~ pattern
-        //                 if (matcher.find()) {
-        //                     jiraTicket = matcher[0].toUpperCase()
-        //                 } else {
-        //                     jiraTicket = "null"
-        //                     echo "Jira ticket name wasn't found!"
+        //         stage('Prepare directories') {
+        //             script {
+        //                 // Create plugin verifier dirs if they are not created yet
+        //                 def hasPluginVerifierDir = sh(returnStatus: true, script: "ls $JENKINS_HOME/plugin-verifier") == 0
+        //                 if (!hasPluginVerifierDir) {
+        //                     sh(returnStdout: false, script: "mkdir -m 775 $JENKINS_HOME/plugin-verifier")
+        //                 }
+
+        //                 def hasPluginVerifierIDEsDir = sh(returnStatus: true, script: "ls $JENKINS_HOME/plugin-verifier/ides") == 0
+        //                 if (!hasPluginVerifierIDEsDir) {
+        //                     sh(returnStdout: false, script: "mkdir -m 775 $JENKINS_HOME/plugin-verifier/ides")
+        //                 }
+
+        //                 def hasPluginVerifierJarsDir = sh(returnStatus: true, script: "ls $JENKINS_HOME/plugin-verifier/verifiers") == 0
+        //                 if (!hasPluginVerifierJarsDir) {
+        //                     sh(returnStdout: false, script: "mkdir -m 775 $JENKINS_HOME/plugin-verifier/verifiers")
         //                 }
         //             }
         //         }
-        //         echo "Jira ticket: $jiraTicket"
+        //         parallel(
+        //             stage('Prepare plugin verifier'): {
+        //                 script {
+        //                     // Fetch info about the plugin verifier
+        //                     def verifierMavenCurlResp = sh(
+        //                         returnStdout: true,
+        //                             script: 'curl -s https://search.maven.org/solrsearch/select?q=g:"org.jetbrains.intellij.plugins"+AND+a:"verifier-cli"\\&wt=json | jq ".response"'
+        //                     )
+
+        //                     // Check if there is only on e IntelliJ plugin verifier
+        //                     def numFound = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.numFound'").trim()
+        //                     if (numFound != "1") {
+        //                         error "Plugin verifier is not found (search in Maven Central gave incorrect number of found packages: $numFound)"
+        //                     }
+
+        //                     // Define verifier's latest version and name to use later
+        //                     def latestVersion = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.docs[0].latestVersion'").trim().replace("\"", "")
+        //                     verifierCurrName = "verifier-cli-${latestVersion}.jar"
+        //                     def verifierCurrNameAll = "verifier-cli-${latestVersion}-all.jar"
+        //                     echo "Verifier to use: $verifierCurrName"
+
+        //                     // Remove all other versions of verifiers in the folder
+        //                     def pluginVerifiersExisting = sh(returnStdout: true, script: "ls $JENKINS_HOME/plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.flatten()
+        //                     def pluginVerifiersToDelete = pluginVerifiersExisting - verifierCurrName
+        //                     pluginVerifiersToDelete.each { verifierName -> sh(returnStdout: false, script: "rm $JENKINS_HOME/plugin-verifier/verifiers/$verifierName") }
+
+        //                     // Download latest verifier version if it is not already in place
+        //                     if (!pluginVerifiersExisting.contains(verifierCurrName)) {
+        //                         sh(returnStdout: false, script: "curl -o $JENKINS_HOME/plugin-verifier/verifiers/$verifierCurrName https://packages.jetbrains.team/maven/p/intellij-plugin-verifier/intellij-plugin-verifier/org/jetbrains/intellij/plugins/verifier-cli/$latestVersion/$verifierCurrNameAll")
+        //                         echo 'Latest verifier JAR is prepared successfully'
+        //                     } else {
+        //                         echo 'Latest verifier JAR is already prepared earlier'
+        //                     }
+        //                 }
+        //             },
+        //             stage('Prepare IDE'): {
+        //                 echo "This is branch b"
+        //             }
+        //         )
         //     }
         // }
-        // stage('Clone Branch') {
+        // stage('Check build with plugin verifier') {
         //     steps {
-        //         cleanWs()
-        //         sh "ls -la"
-        //         git branch: "$gitlabBranch", credentialsId: "$gitCredentialsId", url: "$gitUrl"
-        //     }
-        // }
-        // stage('Build Plugin IDEA') {
-        //     steps {
-        //         // sh 'sudo chmod +x /etc/profile.d/gradle.sh'
-        //         // sh 'sudo -s source /etc/profile.d/gradle.sh'
-        //         withGradle {
-        //             // To change Gradle version - Jenkins/Manage Jenkins/Global Tool Configuration
-        //             // sh 'gradle -v'
-        //             sh 'gradle wrapper'
-        //             sh './gradlew -v'
-        //             sh './gradlew test'
-        //             sh './gradlew buildPlugin'
+        //         script {
+        //             resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
         //         }
+        //         sh """
+        //         java -jar /plugin-verifier/verifier-all.jar check-plugin build/distributions/$resultFileName [latest-release-IU] [latest-IU] -verification-reports-dir /plugin-verifier/results
+        //         ls -la /plugin-verifier/results/
+        //         """
         //     }
         // }
-        stage('Check build with plugin verifier') {
-            steps {
-                // Setup plugin verifier
-                script {
-
-                    // Create plugin verifier dirs if they are not created yet
-                    def hasPluginVerifierDir = sh(returnStatus: true, script: "ls $JENKINS_HOME/plugin-verifier") == 0
-                    if (!hasPluginVerifierDir) {
-                        sh(returnStdout: false, script: "mkdir -m 775 $JENKINS_HOME/plugin-verifier")
-                    }
-
-                    def hasPluginVerifierIDEsDir = sh(returnStatus: true, script: "ls $JENKINS_HOME/plugin-verifier/ides") == 0
-                    if (!hasPluginVerifierIDEsDir) {
-                        sh(returnStdout: false, script: "mkdir -m 775 $JENKINS_HOME/plugin-verifier/ides")
-                    }
-
-                    def hasPluginVerifierJarsDir = sh(returnStatus: true, script: "ls $JENKINS_HOME/plugin-verifier/verifiers") == 0
-                    if (!hasPluginVerifierJarsDir) {
-                        sh(returnStdout: false, script: "mkdir -m 775 $JENKINS_HOME/plugin-verifier/verifiers")
-                    }
-
-                    // Fetch info about the plugin verifier
-                    def verifierMavenCurlResp = sh(
-                        returnStdout: true,
-                            script: 'curl -s https://search.maven.org/solrsearch/select?q=g:"org.jetbrains.intellij.plugins"+AND+a:"verifier-cli"\\&wt=json | jq ".response"'
-                    )
-
-                    // Check if there is only on e IntelliJ plugin verifier
-                    def numFound = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.numFound'").trim()
-                    if (numFound != "1") {
-                        error "Plugin verifier is not found (search in Maven Central gave incorrect number of found packages: $numFound)"
-                    }
-
-                    // Define verifier's latest version and name to use later
-                    def latestVersion = sh(returnStdout: true, script: "#!/bin/sh -e\n" + "echo '$verifierMavenCurlResp' | jq '.docs[0].latestVersion'").trim().replace("\"", "")
-                    verifierCurrName = "verifier-cli-${latestVersion}.jar"
-                    echo "Verifier to use: $verifierCurrName"
-
-                    // Remove all other versions of verifiers in the folder
-                    def pluginVerifiersExisting = sh(returnStdout: true, script: "ls $JENKINS_HOME/plugin-verifier/verifiers").split("\n").collect { it.split(" ") - "" }.flatten()
-                    def pluginVerifiersToDelete = pluginVerifiersExisting - verifierCurrName
-                    pluginVerifiersToDelete.each { verifierName -> sh(returnStdout: false, script: "rm $JENKINS_HOME/plugin-verifier/verifiers/$verifierName") }
-
-                    // Download latest verifier version if it is not already in place
-                    if (!pluginVerifiersExisting.contains(verifierCurrName)) {
-                        sh(returnStdout: false, script: "curl -o $JENKINS_HOME/plugin-verifier/verifiers/$verifierCurrName http://search.maven.org/remotecontent?filepath=org/jetbrains/intellij/plugins/verifier-cli/$latestVersion/$verifierCurrName")
-                        echo 'Latest verifier JAR is prepared successfully'
-                    } else {
-                        echo 'Latest verifier JAR is already prepared earlier'
-                    }
-                }
-
-
-                // script {
-                //     resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
-                // }
-                // sh """
-                // java -jar /plugin-verifier/verifier-all.jar check-plugin build/distributions/$resultFileName [latest-release-IU] [latest-IU] -verification-reports-dir /plugin-verifier/results
-                // ls -la /plugin-verifier/results/
-                // """
-            }
-        }
         // stage('Move to the AWS - IDEA') {
         //     steps {
         //         script {

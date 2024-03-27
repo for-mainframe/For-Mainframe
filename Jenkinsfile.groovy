@@ -83,15 +83,9 @@ pipeline {
             steps {
                 // sh 'sudo chmod +x /etc/profile.d/gradle.sh'
                 // sh 'sudo -s source /etc/profile.d/gradle.sh'
-                withGradle {
-                    // To change Gradle version - Jenkins/Manage Jenkins/Global Tool Configuration
-                    // sh 'gradle -v'
-                    sh 'ls -la'
-                    sh 'gradle wrapper'
-                    sh './gradlew -v'
-                    sh './gradlew test'
-                    sh './gradlew buildPlugin'
-                }
+                sh './gradlew -v'
+                sh './gradlew test'
+                sh './gradlew buildPlugin'
             }
         }
         stage('Verify Plugin') {
@@ -107,46 +101,46 @@ pipeline {
                 }
             }
         }
-        // stage('Form and post Jira message') {
-        //     steps {
-        //         script {
-        //             resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
-        //         }
-        //         sh """
-        //         if [ "$jiraTicket" = "null" ]
-        //         then
-        //             echo "jira ticket is not determined"
-        //         else
-        //             if [ -d "/var/www/ijmp-plugin/$jiraTicket" ]
-        //             then
-        //                 sudo rm -r /var/www/ijmp-plugin/$jiraTicket
-        //             fi
-        //             sudo mkdir -p /var/www/ijmp-plugin/$jiraTicket
-        //             sudo mkdir /var/www/ijmp-plugin/$jiraTicket/idea
-        //             sudo mkdir /var/www/ijmp-plugin/$jiraTicket/pycharm
+        stage('Form and post Jira message') {
+            steps {
+                script {
+                    resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
+                }
+                sh """
+                if [ "$jiraTicket" = "null" ]
+                then
+                    echo "jira ticket is not determined"
+                else
+                    if [ -d "/var/www/ijmp-plugin/$jiraTicket" ]
+                    then
+                        sudo rm -r /var/www/ijmp-plugin/$jiraTicket
+                    fi
+                    sudo mkdir -p /var/www/ijmp-plugin/$jiraTicket
+                    sudo mkdir /var/www/ijmp-plugin/$jiraTicket/idea
+                    sudo mkdir /var/www/ijmp-plugin/$jiraTicket/pycharm
 
-        //             sudo mv build/distributions/$resultFileName /var/www/ijmp-plugin/$jiraTicket/idea
-        //         fi
-        //         """
-        //     }
-        //     post {
-        //         success {
-        //             script {
-        //                 if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
-        //                     jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch was successfully built. You can download your build from the following link $apacheInternalUrl/ijmp-plugin/$jiraTicket/idea/$resultFileName.", site: "$jiraSite"
-        //                 }
+                    sudo mv build/distributions/$resultFileName /var/www/ijmp-plugin/$jiraTicket/idea
+                fi
+                """
+            }
+            post {
+                success {
+                    script {
+                        if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
+                            jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch was successfully built. You can download your build from the following link $apacheInternalUrl/ijmp-plugin/$jiraTicket/idea/$resultFileName.", site: "$jiraSite"
+                        }
 
-        //             }
-        //         }
-        //         failure {
-        //             script {
-        //                 if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
-        //                     jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch failed to build for Intellij IDEA. You can get console output by the following link $jenkinsServerUrl/job/BuildPluginPipeline/", site: "$jiraSite"
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+                    }
+                }
+                failure {
+                    script {
+                        if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
+                            jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch failed to build for Intellij IDEA. You can get console output by the following link $jenkinsServerUrl/job/BuildPluginPipeline/", site: "$jiraSite"
+                        }
+                    }
+                }
+            }
+        }
 
         // stage('Change Plugin Version'){
         //     steps{

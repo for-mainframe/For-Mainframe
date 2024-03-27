@@ -118,11 +118,12 @@ pipeline {
                     script {
                         // if (gitlabBranch.contains("release-publish")) {
                         if (gitlabBranch.contains("feature/IJMP-1401-plugin-verifier-jenkins")) {
-                            def publishPluginWithParams = "./gradlew publishPlugin "
-                                .concat("-PINTELLIJ_SIGNING_CERTIFICATE_CHAIN=${env.INTELLIJ_SIGNING_CERTIFICATE_CHAIN} ")
-                                .concat("-PINTELLIJ_SIGNING_PRIVATE_KEY=${env.INTELLIJ_SIGNING_PRIVATE_KEY} ")
-                                .concat("-PINTELLIJ_SIGNING_PRIVATE_KEY=${env.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD} ")
-                                .concat("-PINTELLIJ_SIGNING_PUBLISH_TOKEN=${env.INTELLIJ_SIGNING_PUBLISH_TOKEN}")
+                            def publishPluginWithParams = "./gradlew publishPlugin"
+                                .concat(" -PINTELLIJ_SIGNING_CERTIFICATE_CHAIN=${env.INTELLIJ_SIGNING_CERTIFICATE_CHAIN}")
+                                .concat(" -PINTELLIJ_SIGNING_PRIVATE_KEY=${env.INTELLIJ_SIGNING_PRIVATE_KEY}")
+                                .concat(" -PINTELLIJ_SIGNING_PRIVATE_KEY=${env.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD}")
+                                .concat(" -PINTELLIJ_SIGNING_PUBLISH_TOKEN=${env.INTELLIJ_SIGNING_PUBLISH_TOKEN}")
+                                .concat(" --info")
                             sh publishPluginWithParams
                         } else {
                             echo 'Does not publish the version as the branch is not the "release-publish" branch'

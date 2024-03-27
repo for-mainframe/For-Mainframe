@@ -49,11 +49,6 @@ pipeline {
         jdk 'Java 11'
     }
     stages {
-        stage('Test check') {
-            steps {
-                echo INTELLIJ_SIGNING_CERTIFICATE_CHAIN
-            }
-        }
         // stage('Initial checkup') {
         //     steps {
         //         sh 'java -version'
@@ -117,20 +112,25 @@ pipeline {
         //         }
         //     }
         // }
-        // stage('Release Plugin') {
-        //     steps {
-        //         withGradle {
-        //             script {
-        //                 // if (gitlabBranch.contains("release-publish")) {
-        //                 if (gitlabBranch.contains("feature/IJMP-1401-plugin-verifier-jenkins")) {
-        //                     sh './gradlew publishPlugin'
-        //                 } else {
-        //                     echo 'Does not publish the version as the branch is not the "release-publish" branch'
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Release Plugin') {
+            steps {
+                withGradle {
+                    script {
+                        // if (gitlabBranch.contains("release-publish")) {
+                        if (gitlabBranch.contains("feature/IJMP-1401-plugin-verifier-jenkins")) {
+                            def publishPluginWithParams = "./gradlew publishPlugin "
+                                + "-PINTELLIJ_SIGNING_CERTIFICATE_CHAIN=${env.INTELLIJ_SIGNING_CERTIFICATE_CHAIN} "
+                                + "-PINTELLIJ_SIGNING_PRIVATE_KEY=${env.INTELLIJ_SIGNING_PRIVATE_KEY} "
+                                + "-PINTELLIJ_SIGNING_PRIVATE_KEY=${env.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD} "
+                                + "-PINTELLIJ_SIGNING_PUBLISH_TOKEN=${env.INTELLIJ_SIGNING_PUBLISH_TOKEN}"
+                            sh publishPluginWithParams
+                        } else {
+                            echo 'Does not publish the version as the branch is not the "release-publish" branch'
+                        }
+                    }
+                }
+            }
+        }
         // stage('Form and post Jira message') {
         //     steps {
         //         script {

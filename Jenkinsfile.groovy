@@ -79,21 +79,29 @@ pipeline {
                 git branch: "$gitlabBranch", credentialsId: "$gitCredentialsId", url: "$gitUrl"
             }
         }
-        stage('Build Plugin IDEA') {
+        stage('Build Plugin') {
             steps {
                 // sh 'sudo chmod +x /etc/profile.d/gradle.sh'
                 // sh 'sudo -s source /etc/profile.d/gradle.sh'
+                sh './gradlew -v'
+                sh './gradlew test'
+                sh './gradlew buildPlugin'
+            }
+        }
+        stage('Verify Plugin') {
+            steps {
                 withGradle {
-                    // To change Gradle version - Jenkins/Manage Jenkins/Global Tool Configuration
-                    // sh 'gradle -v'
-                    sh 'gradle wrapper'
-                    sh './gradlew -v'
-                    sh './gradlew test'
-                    sh './gradlew buildPlugin'
+                    script {
+                        if (gitlabBranch.contains("release")) {
+                            sh './gradlew runPluginVerifier'
+                        } else {
+                            echo 'Plugin verification is skipped as the branch to verify is not a release branch'
+                        }
+                    }
                 }
             }
         }
-        stage('Move to the AWS - IDEA') {
+        stage('Form and post Jira message') {
             steps {
                 script {
                     resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
@@ -141,48 +149,5 @@ pipeline {
         //             def res = changeVersion(xmlFileData)
         //             writeFile file: "src/main/resources/META-INF/plugin.xml", text: res
         //         }
-
-        //     }
-        // }
-        // stage('Build Plugin PyCharm'){
-        //     steps{
-        //         //sh 'sudo chmod +x /etc/profile.d/gradle.sh'
-        //         //sh 'sudo source /etc/profile.d/gradle.sh'
-        //         withGradle {
-        //             //sh 'gradle -v'
-        //             sh 'gradle wrapper'
-        //             sh './gradlew buildPlugin'
-        //         }
-        //     }
-        // }
-        // stage('Move to the AWS - PyCharm'){
-        //     steps{
-        //         script{
-        //             resultFileName = sh(returnStdout: true, script: "cd build/distributions/ && ls").trim()
-        //         }
-        //         sh "sudo mv build/distributions/$resultFileName /var/www/ijmp-plugin/$jiraTicket/pycharm"
-        //     }
-        //     post{
-        //         success {
-        //             script{
-        //                 if(!jiraTicket.contains('release') && !'development'.equals(jiraTicket)){
-        //                     jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch was successfully built for PyCharm version. You can download your build from the following link http://10.221.23.186/ijmp-plugin/$jiraTicket/pycharm/$resultFileName.", site:"$jiraSite"
-        //                 }
-
-        //             }
-        //         }
-        //         failure {
-        //             script{
-        //                 if(!jiraTicket.contains('release') && !'development'.equals(jiraTicket)){
-        //                     jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch failed to build for PyCharm. You can get console output by the following link http://10.221.23.186:8080/job/BuildPluginPipeline/", site:"$jiraSite"
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-
     }
-
-
 }

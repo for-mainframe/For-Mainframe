@@ -36,61 +36,21 @@ jobs:
         restore-keys: ${{ runner.os }}-gradle
 
     - name: Build with Gradle
-      run: gradle wrapper && ./gradlew buildPlugin
+      run: ./gradlew buildPlugin
       shell: bash
 
-    - name: Run tests
-      run: ./gradlew test
-      shell: bash
+    # - name: Run tests
+    #   run: ./gradlew test
+    #   shell: bash
 
-    - name: Sonarcloud scans
-      uses: ./.github/actions/sonar
-      env:
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+    # - name: Sonarcloud scans
+    #   uses: ./.github/actions/sonar
+    #   env:
+    #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
-    - name: Publish built plugin
-      uses: actions/upload-artifact@v3
-      with:
-        name: builtPlugin
-        path: ./build/distributions/
-
-
-  deploy:
-    needs: build
-
-    runs-on: XBY_IJMP_machine
-
-    concurrency: test
-    environment:
-      name: test
-      url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.BRANCH_NAME_FOR_DEPLOY}}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME_FOR_DEPLOY }}
-
-    steps:
-    - name: Extract branch name
-      id: extract_branch
-      shell: bash
-      run: >
-        echo "BRANCH_NAME_FOR_DEPLOY=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT && 
-        echo "BRANCH_NAME_LOCAL=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV &&
-        echo "Github branch name is: $BRANCH_NAME_LOCAL"
-
-    - name: Check current directory
-      shell: bash
-      run: pwd && ls -la
-
-    - name: Download artifacts
-      uses: actions/download-artifact@v3
-      with:
-        name: builtPlugin
-        path: ./build/distributions/
-
-    - name: Check plugin built availability
-      shell: bash
-      run: ls -la ./build/distributions
-
-    - name: Get name of build plugin archive
+    - name: Get name of the built plugin archive
       id: getting_file_name
       shell: bash
       run: >
@@ -98,25 +58,11 @@ jobs:
         echo "CURRENT_FILE_PATH=$CURRENT_FILE_PATH" >> $GITHUB_ENV &&
         echo "Name of current file: $CURRENT_FILE_PATH"
 
-    - name: Generate new name for built plugin
-      id: generate_file_name
-      shell: bash
-      run: >
-        TEMP_VAR=$CURRENT_FILE_PATH
-        NEW_FILE_NAME_LOCAL="$(echo ${TEMP_VAR%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
-        NEW_FILE_NAME_LOCAL=${NEW_FILE_NAME_LOCAL##*/} &&
-        echo "NEW_FILE_NAME_LOCAL=$NEW_FILE_NAME_LOCAL" >> $GITHUB_ENV &&
-        echo "Name of new file: $NEW_FILE_NAME_LOCAL" &&
-        echo "NEW_FILE_NAME_FOR_DEPLOY=$NEW_FILE_NAME_LOCAL" >> $GITHUB_OUTPUT &&
-        NEW_FILE_PATH="/var/www/plugin-builds/$BRANCH_NAME_LOCAL/$NEW_FILE_NAME_LOCAL" &&
-        echo "NEW_FILE_PATH=$NEW_FILE_PATH" >> $GITHUB_ENV &&
-        echo "Path to new file: $NEW_FILE_PATH"
-
-    - name: Move built plugin to destination folder
-      shell: bash
-      run: >
-        mkdir -p /var/www/plugin-builds/$BRANCH_NAME_LOCAL &&
-        mv $CURRENT_FILE_PATH $NEW_FILE_PATH
+    - name: Publish built plugin
+      uses: actions/upload-artifact@v3
+      with:
+        name: $CURRENT_FILE_PATH
+        path: ./build/distributions/
 
     - name: Sign archives
       shell: bash
@@ -129,4 +75,79 @@ jobs:
         echo "export GPG tty variable passed" &&
         eval $(gpg-agent --daemon) &&
         echo "starting gpg-agent passed" &&
-        gpg --batch --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign --armor --output $NEW_FILE_PATH.asc $NEW_FILE_PATH
+        gpg --batch --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign --armor --output ./build/distributions/$CURRENT_FILE_PATH.asc ./build/distributions/$CURRENT_FILE_PATH
+
+
+  # deploy:
+  #   needs: build
+
+  #   runs-on: XBY_IJMP_machine
+
+  #   concurrency: test
+  #   environment:
+  #     name: test
+  #     url: http://178.172.233.157/plugin-builds/${{steps.extract_branch.outputs.BRANCH_NAME_FOR_DEPLOY}}/${{ steps.generate_file_name.outputs.NEW_FILE_NAME_FOR_DEPLOY }}
+
+  #   steps:
+  #   - name: Extract branch name
+  #     id: extract_branch
+  #     shell: bash
+  #     run: >
+  #       echo "BRANCH_NAME_FOR_DEPLOY=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT &&
+  #       echo "BRANCH_NAME_LOCAL=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV &&
+  #       echo "Github branch name is: $BRANCH_NAME_LOCAL"
+
+  #   - name: Check current directory
+  #     shell: bash
+  #     run: pwd && ls -la
+
+  #   - name: Download artifacts
+  #     uses: actions/download-artifact@v3
+  #     with:
+  #       name: builtPlugin
+  #       path: ./build/distributions/
+
+  #   - name: Check plugin built availability
+  #     shell: bash
+  #     run: ls -la ./build/distributions
+
+  #   - name: Get name of build plugin archive
+  #     id: getting_file_name
+  #     shell: bash
+  #     run: >
+  #       CURRENT_FILE_PATH=$(echo $(find build -name "for-mainframe*")) &&
+  #       echo "CURRENT_FILE_PATH=$CURRENT_FILE_PATH" >> $GITHUB_ENV &&
+  #       echo "Name of current file: $CURRENT_FILE_PATH"
+
+  #   - name: Generate new name for built plugin
+  #     id: generate_file_name
+  #     shell: bash
+  #     run: >
+  #       TEMP_VAR=$CURRENT_FILE_PATH
+  #       NEW_FILE_NAME_LOCAL="$(echo ${TEMP_VAR%.zip*})."$(date +"%Y-%m-%dT%H:%M:%S%:z" | tr ':' _)".zip" &&
+  #       NEW_FILE_NAME_LOCAL=${NEW_FILE_NAME_LOCAL##*/} &&
+  #       echo "NEW_FILE_NAME_LOCAL=$NEW_FILE_NAME_LOCAL" >> $GITHUB_ENV &&
+  #       echo "Name of new file: $NEW_FILE_NAME_LOCAL" &&
+  #       echo "NEW_FILE_NAME_FOR_DEPLOY=$NEW_FILE_NAME_LOCAL" >> $GITHUB_OUTPUT &&
+  #       NEW_FILE_PATH="/var/www/plugin-builds/$BRANCH_NAME_LOCAL/$NEW_FILE_NAME_LOCAL" &&
+  #       echo "NEW_FILE_PATH=$NEW_FILE_PATH" >> $GITHUB_ENV &&
+  #       echo "Path to new file: $NEW_FILE_PATH"
+
+  #   - name: Move built plugin to destination folder
+  #     shell: bash
+  #     run: >
+  #       mkdir -p /var/www/plugin-builds/$BRANCH_NAME_LOCAL &&
+  #       mv $CURRENT_FILE_PATH $NEW_FILE_PATH
+
+  #   - name: Sign archives
+  #     shell: bash
+  #     run: >
+  #       echo "use-agent" >> ~/.gnupg/gpg.conf &&
+  #       echo "agent-write-to-file passed" &&
+  #       echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf &&
+  #       echo "pinentry-mode write to file passed" &&
+  #       export GPG_TTY=$(tty) &&
+  #       echo "export GPG tty variable passed" &&
+  #       eval $(gpg-agent --daemon) &&
+  #       echo "starting gpg-agent passed" &&
+  #       gpg --batch --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign --armor --output $NEW_FILE_PATH.asc $NEW_FILE_PATH

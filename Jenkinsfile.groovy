@@ -31,6 +31,12 @@ properties([gitLabConnection('code.ycz.icdc.io-connection')])
 
 pipeline {
     agent any
+    environment {
+        INTELLIJ_SIGNING_CERTIFICATE_CHAIN = credentials('intellij-signing-certificate-chain')
+        INTELLIJ_SIGNING_PRIVATE_KEY = credentials('intellij-signing-private-key')
+        INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD = credentials('intellij-signing-private-key-password')
+        INTELLIJ_SIGNING_PUBLISH_TOKEN = credentials('intellij-signing-publish-token')
+    }
     triggers {
         gitlab(triggerOnPush: true, triggerOnMergeRequest: true, skipWorkInProgressMergeRequest: true,
                 noteRegex: "Jenkins please retry a build")
@@ -101,6 +107,20 @@ pipeline {
                             sh './gradlew runPluginVerifier'
                         } else {
                             echo 'Plugin verification is skipped as the branch to verify is not a release branch'
+                        }
+                    }
+                }
+            }
+        }
+        stage('Release Plugin') {
+            steps {
+                withGradle {
+                    script {
+                        // if (gitlabBranch.contains("release-publish")) {
+                        if (gitlabBranch.contains("feature/IJMP-1401-plugin-verifier-jenkins")) {
+                            sh './gradlew publishPlugin'
+                        } else {
+                            echo 'Does not publish the version as the branch is not the "release-publish" branch'
                         }
                     }
                 }

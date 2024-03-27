@@ -31,12 +31,6 @@ properties([gitLabConnection('code.ycz.icdc.io-connection')])
 
 pipeline {
     agent any
-    environment {
-        INTELLIJ_SIGNING_CERTIFICATE_CHAIN = credentials('intellij-signing-certificate-chain')
-        INTELLIJ_SIGNING_PRIVATE_KEY = credentials('intellij-signing-private-key')
-        INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD = credentials('intellij-signing-private-key-password')
-        INTELLIJ_SIGNING_PUBLISH_TOKEN = credentials('intellij-signing-publish-token')
-    }
     triggers {
         gitlab(triggerOnPush: true, triggerOnMergeRequest: true, skipWorkInProgressMergeRequest: true,
                 noteRegex: "Jenkins please retry a build")
@@ -49,84 +43,65 @@ pipeline {
         jdk 'Java 11'
     }
     stages {
-        // stage('Initial checkup') {
-        //     steps {
-        //         sh 'java -version'
-        //     }
-        // }
-        // stage('Get Jira Ticket') {
-        //     steps {
-        //         echo gitlabBranch
-        //         script {
-        //             if (gitlabBranch.equals("development")) {
-        //                 jiraTicket = 'development'
-        //             } else if (gitlabBranch.equals("zowe-development")) {
-        //                 jiraTicket = 'zowe-development'
-        //             } else if (gitlabBranch.contains("release")) {
-        //                 jiraTicket = gitlabBranch
-        //             } else {
-        //                 def pattern = ~/(?i)ijmp-\d+/
-        //                 def matcher = gitlabBranch =~ pattern
-        //                 if (matcher.find()) {
-        //                     jiraTicket = matcher[0].toUpperCase()
-        //                 } else {
-        //                     jiraTicket = "null"
-        //                     echo "Jira ticket name wasn't found!"
-        //                 }
-        //             }
-        //         }
-        //         echo "Jira ticket: $jiraTicket"
-        //     }
-        // }
-        // stage('Clone Branch') {
-        //     steps {
-        //         cleanWs()
-        //         sh "ls -la"
-        //         git branch: "$gitlabBranch", credentialsId: "$gitCredentialsId", url: "$gitUrl"
-        //     }
-        // }
-        // stage('Build Plugin') {
-        //     steps {
-        //         // sh 'sudo chmod +x /etc/profile.d/gradle.sh'
-        //         // sh 'sudo -s source /etc/profile.d/gradle.sh'
-        //         withGradle {
-        //             // To change Gradle version - Jenkins/Manage Jenkins/Global Tool Configuration
-        //             // sh 'gradle -v'
-        //             sh 'gradle wrapper'
-        //             sh './gradlew -v'
-        //             sh './gradlew test'
-        //             sh './gradlew buildPlugin'
-        //         }
-        //     }
-        // }
-        // stage('Verify Plugin') {
-        //     steps {
-        //         withGradle {
-        //             script {
-        //                 if (gitlabBranch.contains("release")) {
-        //                     sh './gradlew runPluginVerifier'
-        //                 } else {
-        //                     echo 'Plugin verification is skipped as the branch to verify is not a release branch'
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        stage('Release Plugin') {
+        stage('Initial checkup') {
+            steps {
+                sh 'java -version'
+            }
+        }
+        stage('Get Jira Ticket') {
+            steps {
+                echo gitlabBranch
+                script {
+                    if (gitlabBranch.equals("development")) {
+                        jiraTicket = 'development'
+                    } else if (gitlabBranch.equals("zowe-development")) {
+                        jiraTicket = 'zowe-development'
+                    } else if (gitlabBranch.contains("release")) {
+                        jiraTicket = gitlabBranch
+                    } else {
+                        def pattern = ~/(?i)ijmp-\d+/
+                        def matcher = gitlabBranch =~ pattern
+                        if (matcher.find()) {
+                            jiraTicket = matcher[0].toUpperCase()
+                        } else {
+                            jiraTicket = "null"
+                            echo "Jira ticket name wasn't found!"
+                        }
+                    }
+                }
+                echo "Jira ticket: $jiraTicket"
+            }
+        }
+        stage('Clone Branch') {
+            steps {
+                cleanWs()
+                sh "ls -la"
+                git branch: "$gitlabBranch", credentialsId: "$gitCredentialsId", url: "$gitUrl"
+            }
+        }
+        stage('Build Plugin') {
+            steps {
+                // sh 'sudo chmod +x /etc/profile.d/gradle.sh'
+                // sh 'sudo -s source /etc/profile.d/gradle.sh'
+                withGradle {
+                    // To change Gradle version - Jenkins/Manage Jenkins/Global Tool Configuration
+                    // sh 'gradle -v'
+                    sh 'ls -la'
+                    sh 'gradle wrapper'
+                    sh './gradlew -v'
+                    sh './gradlew test'
+                    sh './gradlew buildPlugin'
+                }
+            }
+        }
+        stage('Verify Plugin') {
             steps {
                 withGradle {
                     script {
-                        // if (gitlabBranch.contains("release-publish")) {
-                        if (gitlabBranch.contains("feature/IJMP-1401-plugin-verifier-jenkins")) {
-                            def publishPluginWithParams = "./gradlew publishPlugin"
-                                .concat(" -PINTELLIJ_SIGNING_CERTIFICATE_CHAIN=${env.INTELLIJ_SIGNING_CERTIFICATE_CHAIN}")
-                                .concat(" -PINTELLIJ_SIGNING_PRIVATE_KEY=${env.INTELLIJ_SIGNING_PRIVATE_KEY}")
-                                .concat(" -PINTELLIJ_SIGNING_PRIVATE_KEY=${env.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD}")
-                                .concat(" -PINTELLIJ_SIGNING_PUBLISH_TOKEN=${env.INTELLIJ_SIGNING_PUBLISH_TOKEN}")
-                                .concat(" --info")
-                            sh publishPluginWithParams
+                        if (gitlabBranch.contains("release")) {
+                            sh './gradlew runPluginVerifier'
                         } else {
-                            echo 'Does not publish the version as the branch is not the "release-publish" branch'
+                            echo 'Plugin verification is skipped as the branch to verify is not a release branch'
                         }
                     }
                 }

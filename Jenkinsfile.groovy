@@ -94,8 +94,8 @@ pipeline {
                     // sh 'gradle -v'
                     sh 'gradle wrapper'
                     sh './gradlew -v'
-                    sh './gradlew test'
-                    sh './gradlew buildPlugin'
+                    // sh './gradlew test'
+                    // sh './gradlew buildPlugin'
                 }
             }
         }

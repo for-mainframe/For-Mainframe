@@ -132,22 +132,21 @@ pipeline {
         //             def res = changeVersion(xmlFileData)
         //             writeFile file: "src/main/resources/META-INF/plugin.xml", text: res
         //         }
-
-        post {
-            success {
-                script {
-                    if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
-                        jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch was successfully built. You can download your build from the following link $apacheInternalUrl/ijmp-plugin/$jiraTicket/idea/$resultFileName.", site: "$jiraSite"
-                    }
+    }
+    post {
+        success {
+            script {
+                if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
+                    jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch was successfully built. You can download your build from the following link $apacheInternalUrl/ijmp-plugin/$jiraTicket/idea/$resultFileName.", site: "$jiraSite"
                 }
             }
-            failure {
-                script {
-                    if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
-                        def gitlabBranchUrlEncoded = java.net.URLEncoder.encode(gitlabBranch, "UTF-8")
-                        def fullUrl = "$jenkinsServerUrl/job/BuildPluginPipeline/job/$gitlabBranchUrlEncoded/${env.BUILD_NUMBER}/"
-                        jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch failed to build for Intellij IDEA. You can get console output by the following link $fullUrl", site: "$jiraSite"
-                    }
+        }
+        failure {
+            script {
+                if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
+                    def gitlabBranchUrlEncoded = java.net.URLEncoder.encode(gitlabBranch, "UTF-8")
+                    def fullUrl = "$jenkinsServerUrl/job/BuildPluginPipeline/job/$gitlabBranchUrlEncoded/${env.BUILD_NUMBER}/"
+                    jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch failed to build for Intellij IDEA. You can get console output by the following link $fullUrl", site: "$jiraSite"
                 }
             }
         }

@@ -145,7 +145,7 @@ pipeline {
             script {
                 if (!jiraTicket.contains('release') && !'development'.equals(jiraTicket) && !'zowe-development'.equals(jiraTicket) && !"null".equals(jiraTicket)) {
                     def gitlabBranchUrlEncoded = java.net.URLEncoder.encode(gitlabBranch, "UTF-8")
-                    def fullUrl = "$jenkinsServerUrl/job/BuildPluginPipelineMultibranch/job/$gitlabBranchUrlEncoded/${env.BUILD_NUMBER}/"
+                    def fullUrl = "$jenkinsServerUrl/job/BuildPluginPipelineMultibranch/job/$gitlabBranchUrlEncoded/${env.BUILD_NUMBER}/console"
                     jiraAddComment idOrKey: "$jiraTicket", comment: "Hello! It's jenkins. Your push in branch failed to build for Intellij IDEA. You can get console output by the following link $fullUrl", site: "$jiraSite"
                 }
             }

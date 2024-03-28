@@ -213,10 +213,12 @@ tasks {
     password.set(environment("INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD").map { it })
   }
 
-  publishPlugin {
+  patchChangelog {
     dependsOn("runPluginVerifier")
+  }
+
+  publishPlugin {
     dependsOn("patchChangelog")
-    tasks.getByName("patchChangelog").mustRunAfter("runPluginVerifier")
     token.set(environment("INTELLIJ_SIGNING_PUBLISH_TOKEN").map { it })
     // The pluginVersion is based on the SemVer (https://semver.org)
     // Read more: https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel

@@ -13,9 +13,6 @@ on:
 permissions:
   contents: read
 
-defaults:
-  run:
-    workspace:
       name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
 
 jobs:
@@ -30,16 +27,19 @@ jobs:
     # - name: Setup of environment
     #   uses: ./.github/actions/setup
 
-    - name: Check repository content
-      shell: bash
-      run: pwd && ls -la
-
     - name: Cache Gradle packages
       uses: actions/cache@v1
       with:
         path: ~/.gradle/caches
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
         restore-keys: ${{ runner.os }}-gradle
+
+    - name: Check repository content
+      shell: bash
+      run: pwd && ls -la
+      with:
+        name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
+        path: .
 
   build:
     runs-on: ubuntu-latest
@@ -53,6 +53,9 @@ jobs:
         PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
       shell: bash
       run: ./gradlew signPlugin
+      with:
+        name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
+        path: ./shared_workspace
 
   tests:
     runs-on: ubuntu-latest
@@ -69,6 +72,9 @@ jobs:
     - name: Verify plugin against IntelliJ IDEA IDE's
       shell: bash
       run: ./gradlew runPluginVerifier
+      with:
+        name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
+        path: ./shared_workspace
 
   sonar:
     runs-on: ubuntu-latest

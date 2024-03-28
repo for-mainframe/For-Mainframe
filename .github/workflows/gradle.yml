@@ -54,7 +54,7 @@ jobs:
       id: getting_file_name
       shell: bash
       run: >
-        CURRENT_FILE_PATH=$(echo $(find build -name "for-mainframe*")) &&
+        CURRENT_FILE_PATH=$(echo $(find build -name "for-mainframe*.zip")) &&
         echo "CURRENT_FILE_PATH=$CURRENT_FILE_PATH" >> $GITHUB_ENV &&
         echo "Name of current file: $CURRENT_FILE_PATH"
 
@@ -75,7 +75,7 @@ jobs:
         echo "export GPG tty variable passed" &&
         eval $(gpg-agent --daemon) &&
         echo "starting gpg-agent passed" &&
-        gpg --batch --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign --armor --output ./build/distributions/$CURRENT_FILE_PATH.asc ./build/distributions/$CURRENT_FILE_PATH
+        gpg --batch --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign --armor --output $CURRENT_FILE_PATH.asc $CURRENT_FILE_PATH
 
 
   # deploy:

@@ -13,8 +13,6 @@ on:
 permissions:
   contents: read
 
-      name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
-
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -86,6 +84,9 @@ jobs:
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+      with:
+        name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
+        path: ./shared_workspace
 
   artifacts:
     runs-on: ubuntu-latest
@@ -95,6 +96,9 @@ jobs:
     - name: Set Artifact Name
       shell: bash
       run: ./gradlew setArtifactNameForGitHubAction
+      with:
+        name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
+        path: ./shared_workspace
 
     - name: Publish built plugin to artifacts
       uses: actions/upload-artifact@v4

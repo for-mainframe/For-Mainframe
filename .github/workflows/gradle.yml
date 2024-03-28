@@ -50,7 +50,7 @@ jobs:
     #   shell: bash
 
     - name: Verify plugin against IntelliJ IDEA IDE's
-      if: contains(github.ref, "release")
+      if: contains(github.ref, 'release')
       shell: bash
       run: ./gradlew runPluginVerifier
 

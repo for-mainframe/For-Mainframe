@@ -58,7 +58,15 @@ jobs:
         echo "CURRENT_FILE_PATH=$CURRENT_FILE_PATH" >> $GITHUB_ENV &&
         echo "Name of current file: $CURRENT_FILE_PATH"
 
-    - name: Publish built plugin
+    - name: Prepare signed plugin version
+      env:
+        PUBLISH_TOKEN: ${{ secrets.INTELLIJ_SIGNING_PUBLISH_TOKEN }}
+        CERTIFICATE_CHAIN: ${{ secrets.INTELLIJ_SIGNING_CERTIFICATE_CHAIN }}
+        PRIVATE_KEY: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY }}
+        PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
+      run: ./gradlew signPlugin
+
+    - name: Publish built plugin to artifacts
       uses: actions/upload-artifact@v3
       with:
         name: $CURRENT_FILE_PATH

@@ -13,6 +13,11 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    workspace:
+      name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
+
 jobs:
   prepare:
     runs-on: ubuntu-latest

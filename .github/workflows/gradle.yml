@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  prepare:
+  build:
     runs-on: ubuntu-latest
     steps:
 
@@ -35,14 +35,7 @@ jobs:
     - name: Check repository content
       shell: bash
       run: pwd && ls -la
-      with:
-        name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
-        path: .
 
-  build:
-    runs-on: ubuntu-latest
-    needs: [prepare]
-    steps:
     - name: Build plugin
       env:
         PUBLISH_TOKEN: ${{ secrets.INTELLIJ_SIGNING_PUBLISH_TOKEN }}
@@ -51,54 +44,21 @@ jobs:
         PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
       shell: bash
       run: ./gradlew signPlugin
-      with:
-        name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
-        path: ./shared_workspace
 
-  tests:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
     - name: Run tests
       run: ./gradlew test
       shell: bash
 
-  verify:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
     - name: Verify plugin against IntelliJ IDEA IDE's
       shell: bash
       run: ./gradlew runPluginVerifier
-      with:
-        name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
-        path: ./shared_workspace
 
-  sonar:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
     - name: SonarCloud scans
       uses: ./.github/actions/sonar
       env:
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-      with:
-        name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
-        path: ./shared_workspace
-
-  artifacts:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-
-    - name: Set Artifact Name
-      shell: bash
-      run: ./gradlew setArtifactNameForGitHubAction
-      with:
-        name: ${{ github.run_id }}-${{ github.workflow }}-${{ github.job }}-${{ github.sha }}
-        path: ./shared_workspace
 
     - name: Publish built plugin to artifacts
       uses: actions/upload-artifact@v4

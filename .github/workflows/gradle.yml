@@ -17,53 +17,53 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
-    - name: Checkout of github repository
-      uses: actions/checkout@v3
-
-    # Looks like redundant
-    # - name: Setup of environment
-    #   uses: ./.github/actions/setup
-
-    - name: Cache Gradle packages
-      uses: actions/cache@v1
-      with:
-        path: ~/.gradle/caches
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-        restore-keys: ${{ runner.os }}-gradle
-
-    - name: Check repository content
+    - name: Temp test
+      if: ${{ contains(github.ref, 'release') }}
       shell: bash
       run: pwd && ls -la
 
-    - name: Build plugin
-      env:
-        PUBLISH_TOKEN: ${{ secrets.INTELLIJ_SIGNING_PUBLISH_TOKEN }}
-        CERTIFICATE_CHAIN: ${{ secrets.INTELLIJ_SIGNING_CERTIFICATE_CHAIN }}
-        PRIVATE_KEY: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY }}
-        PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
-      shell: bash
-      run: ./gradlew signPlugin
+    # - name: Checkout of github repository
+    #   uses: actions/checkout@v3
+
+    # - name: Cache Gradle packages
+    #   uses: actions/cache@v1
+    #   with:
+    #     path: ~/.gradle/caches
+    #     key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+    #     restore-keys: ${{ runner.os }}-gradle
+
+    # - name: Check repository content
+    #   shell: bash
+    #   run: pwd && ls -la
+
+    # - name: Build plugin
+    #   env:
+    #     PUBLISH_TOKEN: ${{ secrets.INTELLIJ_SIGNING_PUBLISH_TOKEN }}
+    #     CERTIFICATE_CHAIN: ${{ secrets.INTELLIJ_SIGNING_CERTIFICATE_CHAIN }}
+    #     PRIVATE_KEY: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY }}
+    #     PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
+    #   shell: bash
+    #   run: ./gradlew signPlugin
 
     # - name: Run tests
     #   run: ./gradlew test
     #   shell: bash
 
-    - name: Verify plugin against IntelliJ IDEA IDE's
-      if: contains(github.ref, 'release')
-      shell: bash
-      run: ./gradlew runPluginVerifier
+    # - name: Verify plugin against IntelliJ IDEA IDE's
+    #   if: contains(github.ref, 'release')
+    #   shell: bash
+    #   run: ./gradlew runPluginVerifier
 
-    - name: SonarCloud scans
-      continue-on-error: true
-      uses: ./.github/actions/sonar
-      env:
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+    # - name: SonarCloud scans
+    #   continue-on-error: true
+    #   uses: ./.github/actions/sonar
+    #   env:
+    #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
-    - name: Publish built plugin to artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: for-mainframe-build
-        path: ./build/distributions/
+    # - name: Publish built plugin to artifacts
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: for-mainframe-build
+    #     path: ./build/distributions/

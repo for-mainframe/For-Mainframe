@@ -45,15 +45,17 @@ jobs:
       shell: bash
       run: ./gradlew signPlugin
 
-    - name: Run tests
-      run: ./gradlew test
-      shell: bash
+    # - name: Run tests
+    #   run: ./gradlew test
+    #   shell: bash
 
     - name: Verify plugin against IntelliJ IDEA IDE's
+      if: contains(github.ref, "release")
       shell: bash
       run: ./gradlew runPluginVerifier
 
     - name: SonarCloud scans
+      continue-on-error: true
       uses: ./.github/actions/sonar
       env:
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

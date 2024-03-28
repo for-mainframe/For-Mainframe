@@ -214,7 +214,9 @@ tasks {
   }
 
   publishPlugin {
+    dependsOn("runPluginVerifier")
     dependsOn("patchChangelog")
+    tasks.getByName("patchChangelog").mustRunAfter("runPluginVerifier")
     token.set(environment("INTELLIJ_SIGNING_PUBLISH_TOKEN").map { it })
     // The pluginVersion is based on the SemVer (https://semver.org)
     // Read more: https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
@@ -238,10 +240,6 @@ tasks {
   runIdeForUiTests {
     systemProperty("idea.trust.all.projects", "true")
     systemProperty("ide.show.tips.on.startup.default.value", "false")
-  }
-
-  register<Exec>("setArtifactNameForGitHubAction") {
-    commandLine("bash", "-c", "echo ::set-env name=PLUGIN_NAME_AND_VERSION::for-mainframe-${properties("pluginVersion").get()}")
   }
 }
 

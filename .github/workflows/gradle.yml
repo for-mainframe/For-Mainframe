@@ -14,15 +14,16 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  prepare:
     runs-on: ubuntu-latest
-
     steps:
+
     - name: Checkout of github repository
       uses: actions/checkout@v3
 
-    - name: Setup of environment
-      uses: ./.github/actions/setup
+    # Looks like redundant
+    # - name: Setup of environment
+    #   uses: ./.github/actions/setup
 
     - name: Check repository content
       shell: bash
@@ -35,7 +36,11 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
         restore-keys: ${{ runner.os }}-gradle
 
-    - name: Build and sign plugin
+  build:
+    runs-on: ubuntu-latest
+    needs: [prepare]
+    steps:
+    - name: Build plugin
       env:
         PUBLISH_TOKEN: ${{ secrets.INTELLIJ_SIGNING_PUBLISH_TOKEN }}
         CERTIFICATE_CHAIN: ${{ secrets.INTELLIJ_SIGNING_CERTIFICATE_CHAIN }}
@@ -44,16 +49,37 @@ jobs:
       shell: bash
       run: ./gradlew signPlugin
 
-    # - name: Run tests
-    #   run: ./gradlew test
-    #   shell: bash
+  tests:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+    - name: Run tests
+      run: ./gradlew test
+      shell: bash
 
-    # - name: Sonarcloud scans
-    #   uses: ./.github/actions/sonar
-    #   env:
-    #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-    #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+  verify:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+    - name: Verify plugin against IntelliJ IDEA IDE's
+      shell: bash
+      run: ./gradlew runPluginVerifier
+
+  sonar:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+    - name: SonarCloud scans
+      uses: ./.github/actions/sonar
+      env:
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+
+  artifacts:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
 
     - name: Set Artifact Name
       shell: bash
@@ -62,5 +88,5 @@ jobs:
     - name: Publish built plugin to artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.PLUGIN_NAME_AND_VERSION }}
+        name: for-mainframe-build
         path: ./build/distributions/

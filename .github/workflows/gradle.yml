@@ -22,6 +22,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Setup of environment
+      shell: bash
       uses: ./.github/actions/setup
 
     - name: Check repository content
@@ -41,6 +42,7 @@ jobs:
         CERTIFICATE_CHAIN: ${{ secrets.INTELLIJ_SIGNING_CERTIFICATE_CHAIN }}
         PRIVATE_KEY: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY }}
         PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
+      shell: bash
       run: ./gradlew signPlugin
 
     # - name: Run tests
@@ -54,16 +56,12 @@ jobs:
     #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
-    - name: Get name of the built plugin archive
-      id: getting_file_name
+    - name: Set Artifact Name
       shell: bash
-      run: >
-        CURRENT_FILE_PATH=$(echo $(find build -name "for-mainframe*.zip")) &&
-        echo "CURRENT_FILE_PATH=$CURRENT_FILE_PATH" >> $GITHUB_ENV &&
-        echo "Name of current file: $CURRENT_FILE_PATH"
+      run: ./gradlew setArtifactNameForGitHubAction
 
     - name: Publish built plugin to artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: ${{ CURRENT_FILE_PATH }}
+        name: ${{ env.PLUGIN_NAME_AND_VERSION }}
         path: ./build/distributions/

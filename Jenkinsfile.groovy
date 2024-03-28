@@ -45,7 +45,6 @@ pipeline {
     stages {
         stage('Initial checkup') {
             steps {
-                error "Error to check if failure works correctly"
                 sh 'java -version'
             }
         }
@@ -75,6 +74,7 @@ pipeline {
         }
         stage('Clone Branch') {
             steps {
+                error "Error to check if failure works correctly"
                 cleanWs()
                 sh "ls -la"
                 git branch: "$gitlabBranch", credentialsId: "$gitCredentialsId", url: "$gitUrl"

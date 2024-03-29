@@ -78,7 +78,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ steps.artifact.outputs.filename }}
-        path: ./build/distributions/
+        path: ./build/distributions/content/*/*
 
   test:
     needs: [build]

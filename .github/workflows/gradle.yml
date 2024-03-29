@@ -41,13 +41,6 @@ jobs:
       with:
         gradle-home-cache-cleanup: true
 
-    # - name: Cache Gradle packages
-    #   uses: actions/cache@v1
-    #   with:
-    #     path: ~/.gradle/caches
-    #     key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-    #     restore-keys: ${{ runner.os }}-gradle
-
     - name: Check repository content
       shell: bash
       run: pwd && ls -la
@@ -121,7 +114,7 @@ jobs:
         path: ${{ github.workspace }}/build/reports/kover/html
 
   verify:
-    if: ${{ startsWith(github.ref, 'release/') }}
+    # if: ${{ startsWith(github.ref, 'release/') }}
     needs: [build]
     runs-on: ubuntu-latest
     steps:

@@ -24,6 +24,8 @@ jobs:
     outputs:
       pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
     steps:
+      - name: Build Plugin
+        uses: ./.github/actions/build
 
     # - name: Checkout the plugin GitHub repository
     #   uses: actions/checkout@v4

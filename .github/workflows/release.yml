@@ -12,129 +12,111 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-before-release:
-    uses: ./.github/workflows/build.yml
   release:
-    needs: [build-before-release]
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
 
-    - name: Sudden fail
-      run: exit 1
+      - name: Checkout the plugin GitHub repository
+        uses: actions/checkout@v4
 
-    - name: Checkout the plugin GitHub repository
-      uses: actions/checkout@v4
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v2
 
-    - name: Validate Gradle Wrapper
-      uses: gradle/wrapper-validation-action@v2
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 11
 
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: zulu
-        java-version: 11
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-home-cache-cleanup: true
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-home-cache-cleanup: true
+      - name: Fetch Gradle properties
+        id: properties
+        shell: bash
+        run: |
+          PROPERTIES="$(./gradlew properties --console=plain -q)"
+          PLUGIN_VERSION_FULL="$(echo "$PROPERTIES" | grep "^pluginVersion:" | cut -f2- -d ' ')"
+          PLUGIN_VERSION_SEMVER="$(echo "$PLUGIN_VERSION_FULL" | grep -Po '\d{1,}\.\d{1,}\.\d{1,}')"
 
-    - name: Fetch Gradle properties
-      id: properties
-      shell: bash
-      run: |
-        PROPERTIES="$(./gradlew properties --console=plain -q)"
-        PLUGIN_VERSION_FULL="$(echo "$PROPERTIES" | grep "^pluginVersion:" | cut -f2- -d ' ')"
-        PLUGIN_VERSION_SEMVER="$(echo "$PLUGIN_VERSION_FULL" | grep -Po '\d{1,}\.\d{1,}\.\d{1,}')"
+          echo "pluginVersionFull: $PLUGIN_VERSION_FULL"
+          echo "pluginVersionSemVer: $PLUGIN_VERSION_SEMVER"
 
-        echo "pluginVersionFull: $PLUGIN_VERSION_FULL"
-        echo "pluginVersionSemVer: $PLUGIN_VERSION_SEMVER"
+          echo "pluginVersionFull=$PLUGIN_VERSION_FULL" >> $GITHUB_OUTPUT
+          echo "pluginVersionSemVer=$PLUGIN_VERSION_SEMVER" >> $GITHUB_OUTPUT
 
-        echo "pluginVersionFull=$PLUGIN_VERSION_FULL" >> $GITHUB_OUTPUT
-        echo "pluginVersionSemVer=$PLUGIN_VERSION_SEMVER" >> $GITHUB_OUTPUT
+      - name: Publish Plugin
+        env:
+          INTELLIJ_SIGNING_PUBLISH_TOKEN: ${{ secrets.INTELLIJ_SIGNING_PUBLISH_TOKEN }}
+          INTELLIJ_SIGNING_CERTIFICATE_CHAIN: ${{ secrets.INTELLIJ_SIGNING_CERTIFICATE_CHAIN }}
+          INTELLIJ_SIGNING_PRIVATE_KEY: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY }}
+          INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: ./gradlew publishPlugin
 
-    # - name: Publish Plugin
-    #   env:
-    #     INTELLIJ_SIGNING_PUBLISH_TOKEN: ${{ secrets.INTELLIJ_SIGNING_PUBLISH_TOKEN }}
-    #     INTELLIJ_SIGNING_CERTIFICATE_CHAIN: ${{ secrets.INTELLIJ_SIGNING_CERTIFICATE_CHAIN }}
-    #     INTELLIJ_SIGNING_PRIVATE_KEY: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY }}
-    #     INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
-    #   run: ./gradlew publishPlugin
+      - name: Prepare release notes
+        id: release_notes
+        shell: bash
+        run: |
+          CHANGELOG="$(./gradlew getChangelog -q)"
 
-    - name: Prepare release notes
-      id: release_notes
-      shell: bash
-      run: |
-        CHANGELOG="$(./gradlew getChangelog -q)"
+          echo 'version_release_notes<<EOF' >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
 
-        echo 'version_release_notes<<EOF' >> $GITHUB_OUTPUT
-        echo "$CHANGELOG" >> $GITHUB_OUTPUT
-        echo 'EOF' >> $GITHUB_OUTPUT
+          echo "Release notes to be added:"
+          echo "$CHANGELOG"
 
-        echo "Release notes to be added:"
-        echo "$CHANGELOG"
+      - name: Create new tag and release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ steps.properties.outputs.pluginVersionFull }} -F- <<EOF
+          ${{ steps.release_notes.outputs.version_release_notes }}
+          EOF
 
-    - name: Create new tag and release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release create ${{ steps.properties.outputs.pluginVersionFull }} -F- <<EOF
-        ${{ steps.release_notes.outputs.version_release_notes }}
-        EOF
+      - name: Upload Release Built Artifact
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ./build/distributions/*
 
-    - name: Upload Release Built Artifact
-      continue-on-error: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ${{ github.workspace }}/build/distributions/*
+      - name: Create Pull Request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.properties.outputs.pluginVersionFull }}"
+          BRANCH="release-changelog-update-$VERSION"
+          LABEL="release-closer"
 
-    - name: Upload Release Verification Results
-      continue-on-error: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ${{ github.workspace }}/build/reports/pluginVerifier/*
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
 
-    - name: Upload Release Tests Results
-      continue-on-error: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ${{ github.workspace }}/build/reports/kover/html/*
+          git checkout -b $BRANCH
+          git commit -am ":moai: ${VERSION}" -m "[skip ci]"
+          git push --set-upstream origin $BRANCH
 
-    # - name: Create Pull Request
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   run: |
-    #     VERSION="${{ steps.properties.outputs.pluginVersionFull }}"
-    #     BRANCH="release-changelog-update-$VERSION"
-    #     LABEL="release-closer"
+          gh label create "$LABEL" \
+            --color FFEF00 \
+            --description "Pull requests with release changelog update" \
+            || true
 
-    #     git config user.email "action@github.com"
-    #     git config user.name "GitHub Action"
+          gh pr create \
+            --title ":moai: \`$VERSION\`" \
+            --body "Current pull request contains patched \`CHANGELOG.md\` file for the \`$VERSION\` version." \
+            --base "${{ github.event.release.target_commitish }}" \
+            --label "$LABEL" \
+            --head $BRANCH
 
-    #     git checkout -b $BRANCH
-    #     git commit -am ":moai: ${VERSION}" -m "[skip ci]"
-    #     git push --set-upstream origin $BRANCH
-
-    #     gh label create "$LABEL" \
-    #       --color FFEF00 \
-    #       --description "Pull requests with release changelog update" \
-    #       || true
-
-    #     gh pr create \
-    #       --title ":moai: \`$VERSION\`" \
-    #       --body "Current pull request contains patched \`CHANGELOG.md\` file for the \`$VERSION\` version." \
-    #       --base "${{ github.event.release.target_commitish }}" \
-    #       --label "$LABEL" \
-    #       --head $BRANCH
-
-    # - name: Close Milestone
-    #   continue-on-error: true
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   run: |
-    #     gh api repos/{owner}/{repo}/milestones \
-    #       --jq '.[] | select(.title == "${{ steps.properties.outputs.pluginVersionSemVer }}") | .number' \
-    #       | xargs -I '{}' gh api -X PATCH repos/{owner}/{repo}/milestones/{} -F state='closed'
+      - name: Close Milestone
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/{owner}/{repo}/milestones \
+            --jq '.[] | select(.title == "${{ steps.properties.outputs.pluginVersionSemVer }}") | .number' \
+            | xargs -I '{}' gh api -X PATCH repos/{owner}/{repo}/milestones/{} -F state='closed'

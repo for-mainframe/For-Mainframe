@@ -61,10 +61,25 @@ jobs:
     #     INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
     #   run: ./gradlew publishPlugin
 
+    - name: Prepare release notes
+      id: release_notes
+      shell: bash
+      run: |
+        CHANGELOG="$(cat << 'EOM' | ./gradlew getChangelog -q
+        EOM
+        )"
+
+        echo 'version_release_notes<<EOF' >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo 'EOF' >> $GITHUB_OUTPUT
+
+        echo "Release notes to be added:"
+        echo "$CHANGELOG"
+
     - name: Create new tag and release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release create ${{ steps.properties.outputs.pluginVersionFull }} -F CHANGELOG.md
+      run: gh release create ${{ steps.properties.outputs.pluginVersionFull }} --notes "${{ steps.release_notes.outputs.version_release_notes }}"
 
     - name: Upload Release Built Artifact
       continue-on-error: true

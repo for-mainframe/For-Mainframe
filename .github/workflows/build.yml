@@ -53,25 +53,11 @@ jobs:
       shell: bash
       run: |
         PROPERTIES="$(./gradlew properties --console=plain -q)"
-        CHANGELOG="$(cat << 'EOM' | ./gradlew getChangelog -q
-        EOM
-        )"
 
         echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
 
-        echo 'changelog<<EOF' >> $GITHUB_OUTPUT
-        echo "$CHANGELOG" >> $GITHUB_OUTPUT
-        echo 'EOF' >> $GITHUB_OUTPUT
-
-        echo "$CHANGELOG"
-
         # prepare list of IDEs to use by plugin verifier:
         ./gradlew listProductsReleases
-
-    # TODO: remove
-    - name: Build plugin
-      shell: bash
-      run: exit 1
 
     - name: Build plugin
       shell: bash

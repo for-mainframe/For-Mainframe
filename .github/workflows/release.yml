@@ -65,13 +65,9 @@ jobs:
       id: release_notes
       shell: bash
       run: |
-        CHANGELOG="$(cat << 'EOM' | ./gradlew getChangelog -q
-        EOM
-        )"
+        CHANGELOG="$(./gradlew getChangelog -q | sed -r 's/[\n]/<br>/g')"
 
-        echo 'version_release_notes<<EOF' >> $GITHUB_OUTPUT
-        echo "$CHANGELOG" >> $GITHUB_OUTPUT
-        echo 'EOF' >> $GITHUB_OUTPUT
+        echo 'version_release_notes<<$CHANGELOG' >> $GITHUB_OUTPUT
 
         echo "Release notes to be added:"
         echo "$CHANGELOG"

@@ -46,6 +46,23 @@ jobs:
       shell: bash
       run: pwd && ls -la
 
+    - name: Prepare release notes
+      id: release_notes
+      shell: bash
+      run: |
+        CHANGELOG="$(./gradlew getChangelog -q | sed -r 's/[\n]/<br>/g')"
+
+        echo 'version_release_notes<<$CHANGELOG' >> $GITHUB_OUTPUT
+
+        echo "Release notes to be added:"
+        echo "$CHANGELOG"
+
+    # TODO: delete
+    - name: Sudden fail
+      run: exit 1
+
+
+
     - name: Fetch Gradle properties
       id: properties
       env:

@@ -45,7 +45,7 @@ jobs:
       run: |
         PROPERTIES="$(./gradlew properties --console=plain -q)"
         PLUGIN_VERSION_FULL="$(echo "$PROPERTIES" | grep "^pluginVersion:" | cut -f2- -d ' ')"
-        PLUGIN_VERSION_SEMVER="$(echo "$PLUGIN_VERSION_FULL" | grep -Po '\d{1,}\.\d{1,}\.\d{1,}'
+        PLUGIN_VERSION_SEMVER="$(echo "$PLUGIN_VERSION_FULL" | grep -Po '\d{1,}\.\d{1,}\.\d{1,}'"
 
         echo "pluginVersionFull: $PLUGIN_VERSION_FULL"
         echo "pluginVersionSemVer: $PLUGIN_VERSION_SEMVER"

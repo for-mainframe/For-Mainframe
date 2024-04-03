@@ -1,0 +1,47 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  build-before-release:
+    uses: ./.github/workflows/build.yml
+  release:
+    needs: [build-before-release]
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout the plugin GitHub repository
+      uses: actions/checkout@v4
+
+    - name: Validate Gradle Wrapper
+      uses: gradle/wrapper-validation-action@v2
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: zulu
+        java-version: 11
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-home-cache-cleanup: true
+
+    - name: Check repository content
+      shell: bash
+      run: pwd && ls -la

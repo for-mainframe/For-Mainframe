@@ -20,8 +20,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
+    # outputs:
+    #   pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
     steps:
 
     - name: Checkout the plugin GitHub repository
@@ -45,15 +45,15 @@ jobs:
       shell: bash
       run: pwd && ls -la
 
-    - name: Fetch Gradle properties
-      id: properties
-      env:
-        AUTO_SNAPSHOT_VERSION: false
-      shell: bash
-      run: |
-        PROPERTIES="$(./gradlew properties --console=plain -q)"
+    # - name: Fetch Gradle properties
+    #   id: properties
+    #   env:
+    #     AUTO_SNAPSHOT_VERSION: false
+    #   shell: bash
+    #   run: |
+    #     PROPERTIES="$(./gradlew properties --console=plain -q)"
 
-        echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
+    #     echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
 
     - name: Build plugin
       shell: bash
@@ -139,15 +139,17 @@ jobs:
       with:
         gradle-home-cache-cleanup: true
 
-    - name: Setup Plugin Verifier IDEs Cache
-      uses: actions/cache@v4
-      with:
-        path: ${{ needs.build.outputs.pluginVerifierHomeDir }}/ides
+    # TODO: setup
+    # - name: Setup Plugin Verifier IDEs Cache
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: ${{ needs.build.outputs.pluginVerifierHomeDir }}/ides
 
     - name: Verify plugin against IntelliJ IDEA IDE's
       continue-on-error: true
       shell: bash
-      run: ./gradlew runPluginVerifier -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
+      # run: ./gradlew runPluginVerifier -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
+      run: ./gradlew runPluginVerifier
 
     - name: Collect Plugin Verifier Result
       if: ${{ always() }}

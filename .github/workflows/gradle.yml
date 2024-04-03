@@ -5,10 +5,9 @@
 # This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
 
-name: Java CI with Gradle
+name: Build + Test + Verify + Sonar
 
-on:
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 permissions:
   contents: read
@@ -117,7 +116,7 @@ jobs:
         path: ${{ github.workspace }}/build/reports/kover/html
 
   verify:
-    # if: ${{ startsWith(github.ref, 'release/') }}
+    if: ${{ startsWith(github.ref, 'release/') }}
     needs: [build]
     runs-on: ubuntu-latest
     steps:
@@ -161,7 +160,7 @@ jobs:
         path: ${{ github.workspace }}/build/reports/pluginVerifier
 
   sonar:
-    needs: [build]
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
 

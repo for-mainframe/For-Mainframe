@@ -5,8 +5,8 @@ runs:
   using: composite
   steps:
 
-    - name: Checkout the plugin GitHub repository
-      uses: actions/checkout@v4
+    # - name: Checkout the plugin GitHub repository
+    #   uses: actions/checkout@v4
 
     - name: Validate Gradle Wrapper
       uses: gradle/wrapper-validation-action@v2

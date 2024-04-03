@@ -100,13 +100,8 @@ intellij {
 
 // Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
-  version.set(properties("pluginVersion").get().substringBefore('-', "").ifEmpty { version.get() })
-  header.set(
-    provider {
-      "${version.get().substringBefore('-', "").ifEmpty { version.get() }} (${dateValue("yyyy-MM-dd")})"
-    }
-      .get()
-  )
+  version.set(properties("pluginVersion").get())
+  header.set(provider { "${version.get()} (${dateValue("yyyy-MM-dd")})" }.get())
   groups.set(listOf("Breaking changes", "Features", "Bugfixes", "Deprecations", "Security"))
   keepUnreleasedSection.set(false)
   itemPrefix.set("*")
@@ -115,11 +110,11 @@ changelog {
     repositoryUrl + when {
       isUnreleased -> when (previousVersion) {
         null -> "/commits"
-        else -> "/compare/$previousVersion-${properties("pluginVersion").get().substringAfter('-', "")}...HEAD"
+        else -> "/compare/$previousVersion...HEAD"
       }
 
-      previousVersion == null -> "/commits/$currentVersion-${properties("pluginVersion").get().substringAfter('-', "")}"
-      else -> "/compare/$previousVersion-${properties("pluginVersion").get().substringAfter('-', "")}...$currentVersion-${properties("pluginVersion").get().substringAfter('-', "")}"
+      previousVersion == null -> "/commits/$currentVersion"
+      else -> "/compare/$previousVersion...$currentVersion"
     }
   }
 }
@@ -213,12 +208,7 @@ tasks {
     password.set(environment("INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD").map { it })
   }
 
-  patchChangelog {
-    dependsOn("runPluginVerifier")
-  }
-
   publishPlugin {
-    dependsOn("patchChangelog")
     token.set(environment("INTELLIJ_SIGNING_PUBLISH_TOKEN").map { it })
     // The pluginVersion is based on the SemVer (https://semver.org)
     // Read more: https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel

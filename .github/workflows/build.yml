@@ -7,6 +7,8 @@
 
 name: Build + Test + Verify + Sonar
 
+# TODO: uncomment when ready
+# on: [push, workflow_dispatch, workflow_call]
 on: [workflow_dispatch, workflow_call]
 
 permissions:
@@ -24,9 +26,7 @@ jobs:
     steps:
 
     - name: Checkout the plugin GitHub repository
-      # TODO: uncomment this and delete the line after
-      # uses: actions/checkout@v4
-      run: exit 1
+      uses: actions/checkout@v4
 
     - name: Validate Gradle Wrapper
       uses: gradle/wrapper-validation-action@v2
@@ -80,110 +80,110 @@ jobs:
         name: ${{ steps.artifact.outputs.filename }}
         path: ./build/distributions/content/*/*
 
-  test:
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
+  # test:
+  #   needs: [build]
+  #   runs-on: ubuntu-latest
+  #   steps:
 
-    - name: Checkout the plugin GitHub repository
-      uses: actions/checkout@v4
+  #   - name: Checkout the plugin GitHub repository
+  #     uses: actions/checkout@v4
 
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: zulu
-        java-version: 11
+  #   - name: Setup Java
+  #     uses: actions/setup-java@v4
+  #     with:
+  #       distribution: zulu
+  #       java-version: 11
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-home-cache-cleanup: true
+  #   - name: Setup Gradle
+  #     uses: gradle/actions/setup-gradle@v3
+  #     with:
+  #       gradle-home-cache-cleanup: true
 
-    - name: Run tests
-      shell: bash
-      run: ./gradlew test
+  #   - name: Run tests
+  #     shell: bash
+  #     run: ./gradlew test
 
-    - name: Publish tests result to artifacts
-      if: ${{ failure() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: tests-report
-        path: ${{ github.workspace }}/build/reports/tests
+  #   - name: Publish tests result to artifacts
+  #     if: ${{ failure() }}
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: tests-report
+  #       path: ${{ github.workspace }}/build/reports/tests
 
-    - name: Publish code coverage report to artifacts
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: code-coverage-report
-        path: ${{ github.workspace }}/build/reports/kover/html
+  #   - name: Publish code coverage report to artifacts
+  #     if: ${{ always() }}
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: code-coverage-report
+  #       path: ${{ github.workspace }}/build/reports/kover/html
 
-  verify:
-    if: ${{ startsWith(github.ref, 'release/') }}
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
+  # verify:
+  #   if: ${{ startsWith(github.ref, 'release/') }}
+  #   needs: [build]
+  #   runs-on: ubuntu-latest
+  #   steps:
 
-    - name: Maximize Build Space
-      uses: jlumbroso/free-disk-space@main
-      with:
-        tool-cache: false
-        large-packages: false
+  #   - name: Maximize Build Space
+  #     uses: jlumbroso/free-disk-space@main
+  #     with:
+  #       tool-cache: false
+  #       large-packages: false
 
-    - name: Checkout the plugin GitHub repository
-      uses: actions/checkout@v4
+  #   - name: Checkout the plugin GitHub repository
+  #     uses: actions/checkout@v4
 
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: zulu
-        java-version: 11
+  #   - name: Setup Java
+  #     uses: actions/setup-java@v4
+  #     with:
+  #       distribution: zulu
+  #       java-version: 11
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-home-cache-cleanup: true
+  #   - name: Setup Gradle
+  #     uses: gradle/actions/setup-gradle@v3
+  #     with:
+  #       gradle-home-cache-cleanup: true
 
-    - name: Setup Plugin Verifier IDEs Cache
-      uses: actions/cache@v4
-      with:
-        path: ${{ needs.build.outputs.pluginVerifierHomeDir }}/ides
-        key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
+  #   - name: Setup Plugin Verifier IDEs Cache
+  #     uses: actions/cache@v4
+  #     with:
+  #       path: ${{ needs.build.outputs.pluginVerifierHomeDir }}/ides
+  #       key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
 
-    - name: Verify plugin against IntelliJ IDEA IDE's
-      continue-on-error: true
-      shell: bash
-      run: ./gradlew runPluginVerifier -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
+  #   - name: Verify plugin against IntelliJ IDEA IDE's
+  #     continue-on-error: true
+  #     shell: bash
+  #     run: ./gradlew runPluginVerifier -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
 
-    - name: Collect Plugin Verifier Result
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: plugin-verifier-report
-        path: ${{ github.workspace }}/build/reports/pluginVerifier
+  #   - name: Collect Plugin Verifier Result
+  #     if: ${{ always() }}
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: plugin-verifier-report
+  #       path: ${{ github.workspace }}/build/reports/pluginVerifier
 
-  sonar:
-    needs: [test]
-    runs-on: ubuntu-latest
-    steps:
+  # sonar:
+  #   needs: [test]
+  #   runs-on: ubuntu-latest
+  #   steps:
 
-    - name: Checkout the plugin GitHub repository
-      uses: actions/checkout@v4
+  #   - name: Checkout the plugin GitHub repository
+  #     uses: actions/checkout@v4
 
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: zulu
-        java-version: 11
+  #   - name: Setup Java
+  #     uses: actions/setup-java@v4
+  #     with:
+  #       distribution: zulu
+  #       java-version: 11
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-home-cache-cleanup: true
+  #   - name: Setup Gradle
+  #     uses: gradle/actions/setup-gradle@v3
+  #     with:
+  #       gradle-home-cache-cleanup: true
 
-    - name: SonarCloud scans
-      continue-on-error: true
-      uses: ./.github/actions/sonar
-      env:
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+  #   - name: SonarCloud scans
+  #     continue-on-error: true
+  #     uses: ./.github/actions/sonar
+  #     env:
+  #       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  #       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #       GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

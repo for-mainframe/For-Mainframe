@@ -25,6 +25,7 @@ jobs:
       - name: Checkout the plugin GitHub repository
         uses: actions/checkout@v4
   build:
+    needs: [checkout]
     runs-on: ubuntu-latest
     outputs:
       pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}

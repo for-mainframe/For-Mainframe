@@ -21,10 +21,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # TODO: delete
-    permissions:
-      contents: write
-      pull-requests: write
     outputs:
       pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
     steps:
@@ -49,34 +45,6 @@ jobs:
     - name: Check repository content
       shell: bash
       run: pwd && ls -la
-
-    - name: Prepare release notes
-      id: release_notes
-      shell: bash
-      run: |
-        CHANGELOG="$(./gradlew getChangelog -q)"
-
-        echo 'version_release_notes<<EOF' >> $GITHUB_OUTPUT
-        echo "$CHANGELOG" >> $GITHUB_OUTPUT
-        echo 'EOF' >> $GITHUB_OUTPUT
-
-        echo "Release notes to be added:"
-        echo "$CHANGELOG"
-
-    - name: Create new tag and release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release create 1.2.3 -F- <<EOF
-        ${{ steps.release_notes.outputs.version_release_notes }}
-        EOF
-
-
-    # TODO: delete
-    - name: Sudden fail
-      run: exit 1
-
-
 
     - name: Fetch Gradle properties
       id: properties

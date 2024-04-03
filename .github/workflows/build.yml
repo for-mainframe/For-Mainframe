@@ -24,8 +24,8 @@ jobs:
     steps:
 
     - name: Checkout the plugin GitHub repository
-      uses: actions/checkout@v4
-      # TODO: delete this
+      # TODO: uncomment this and delete the line after
+      # uses: actions/checkout@v4
       run: exit 1
 
     - name: Validate Gradle Wrapper

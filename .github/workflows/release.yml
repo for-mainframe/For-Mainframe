@@ -86,19 +86,19 @@ jobs:
       continue-on-error: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ./build/distributions/*
+      run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ${{ github.workspace }}/build/distributions/*
 
     - name: Upload Release Verification Results
       continue-on-error: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ./build/reports/pluginVerifier/*
+      run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ${{ github.workspace }}/build/reports/pluginVerifier/*
 
     - name: Upload Release Tests Results
       continue-on-error: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ./build/reports/kover/html/*
+      run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ${{ github.workspace }}/build/reports/kover/html/*
 
     # - name: Create Pull Request
     #   env:

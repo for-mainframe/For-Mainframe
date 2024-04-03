@@ -25,6 +25,8 @@ jobs:
 
     - name: Checkout the plugin GitHub repository
       uses: actions/checkout@v4
+      # TODO: delete this
+      run: exit 1
 
     - name: Validate Gradle Wrapper
       uses: gradle/wrapper-validation-action@v2

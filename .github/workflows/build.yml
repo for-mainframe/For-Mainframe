@@ -30,6 +30,9 @@ jobs:
     outputs:
       pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
     steps:
+      - name: Check repository content
+        shell: bash
+        run: pwd && ls -la
       - name: Build Plugin
         uses: ./.github/actions/build
 

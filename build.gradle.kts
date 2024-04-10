@@ -26,6 +26,7 @@ plugins {
   kotlin("jvm") version "1.9.22"
   java
   id("org.jetbrains.kotlinx.kover") version "0.6.1"
+  id("org.owasp.dependencycheck") version "9.1.0"
 }
 
 apply(plugin = "kotlin")

@@ -74,6 +74,10 @@ jobs:
           echo "Release notes to be added:"
           echo "$CHANGELOG"
 
+      - name: Patch CHANGELOG
+        shell: bash
+        run: ./gradlew patchChangelog
+
       # - name: Create new tag and release
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

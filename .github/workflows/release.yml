@@ -108,7 +108,7 @@ jobs:
           git commit -am ":moyai: ${VERSION}" -m "[skip ci]"
           git push --set-upstream origin $BRANCH
 
-          sleep 5
+          sleep 10
 
           gh pr create \
             --title ":moyai: \`$VERSION\`" \

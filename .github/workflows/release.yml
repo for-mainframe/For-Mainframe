@@ -53,13 +53,13 @@ jobs:
           echo "pluginVersionSemVer=$PLUGIN_VERSION_SEMVER" >> $GITHUB_OUTPUT
           echo "currCommit=$CURR_COMMIT" >> $GITHUB_OUTPUT
 
-      - name: Publish Plugin
-        env:
-          INTELLIJ_SIGNING_PUBLISH_TOKEN: ${{ secrets.INTELLIJ_SIGNING_PUBLISH_TOKEN }}
-          INTELLIJ_SIGNING_CERTIFICATE_CHAIN: ${{ secrets.INTELLIJ_SIGNING_CERTIFICATE_CHAIN }}
-          INTELLIJ_SIGNING_PRIVATE_KEY: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY }}
-          INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: ./gradlew publishPlugin
+      # - name: Publish Plugin
+      #   env:
+      #     INTELLIJ_SIGNING_PUBLISH_TOKEN: ${{ secrets.INTELLIJ_SIGNING_PUBLISH_TOKEN }}
+      #     INTELLIJ_SIGNING_CERTIFICATE_CHAIN: ${{ secrets.INTELLIJ_SIGNING_CERTIFICATE_CHAIN }}
+      #     INTELLIJ_SIGNING_PRIVATE_KEY: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY }}
+      #     INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.INTELLIJ_SIGNING_PRIVATE_KEY_PASSWORD }}
+      #   run: ./gradlew publishPlugin
 
       - name: Prepare release notes
         id: release_notes
@@ -74,21 +74,21 @@ jobs:
           echo "Release notes to be added:"
           echo "$CHANGELOG"
 
-      - name: Create new tag and release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git tag ${{ steps.properties.outputs.pluginVersionFull }}
-          git push origin ${{ steps.properties.outputs.pluginVersionFull }}
-          gh release create ${{ steps.properties.outputs.pluginVersionFull }} --title ${{ steps.properties.outputs.pluginVersionFull }} --target ${{ steps.properties.outputs.currCommit }} -F- <<EOF
-          ${{ steps.release_notes.outputs.version_release_notes }}
-          EOF
+      # - name: Create new tag and release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     git tag ${{ steps.properties.outputs.pluginVersionFull }}
+      #     git push origin ${{ steps.properties.outputs.pluginVersionFull }}
+      #     gh release create ${{ steps.properties.outputs.pluginVersionFull }} --title ${{ steps.properties.outputs.pluginVersionFull }} --target ${{ steps.properties.outputs.currCommit }} -F- <<EOF
+      #     ${{ steps.release_notes.outputs.version_release_notes }}
+      #     EOF
 
-      - name: Upload Release Built Artifact
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ./build/distributions/*
+      # - name: Upload Release Built Artifact
+      #   continue-on-error: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: gh release upload ${{ steps.properties.outputs.pluginVersionFull }} ./build/distributions/*
 
       - name: Create Pull Request
         env:
@@ -96,7 +96,6 @@ jobs:
         run: |
           VERSION="${{ steps.properties.outputs.pluginVersionFull }}"
           BRANCH="release-changelog-update-$VERSION"
-          LABEL="release-closer"
 
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
@@ -105,16 +104,10 @@ jobs:
           git commit -am ":moyai: ${VERSION}" -m "[skip ci]"
           git push --set-upstream origin $BRANCH
 
-          # gh label create "$LABEL" \
-          #   --color FFEF00 \
-          #   --description "Pull requests with release changelog update" \
-          #   || true
-
           gh pr create \
             --title ":moyai: \`$VERSION\`" \
             --body "Current pull request contains patched \`CHANGELOG.md\` file for the \`$VERSION\` version." \
             --base "release/$VERSION" \
-            --label "$LABEL" \
             --head $BRANCH
 
       - name: Close Milestone

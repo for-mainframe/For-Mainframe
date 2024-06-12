@@ -356,7 +356,8 @@ class ExplorerPasteProvider : PasteProvider {
             "Ok",
             "Skip This Files",
             AllIcons.General.WarningDialog
-          )) {
+          )
+        ) {
           conflictsResolutions.apply {
             clear()
             addAll(ussOrLocalFileToPdsWarnings.map { ConflictResolution(it.second, it.first).apply { resolveBySkip() } })

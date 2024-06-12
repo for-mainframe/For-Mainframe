@@ -23,7 +23,7 @@ All notable changes to the Zowe IntelliJ Plugin will be documented in this file.
 * Bugfix: java.lang.RuntimeException: Cannot invoke (class=, method=onCacheUpdated, topic=cacheUpdated) ([2fedc7f5](https://github.com/zowe/zowe-explorer-intellij/commit/2fedc7f5))
 * Bugfix: "Allocate like" action causes exception when refresh on mask is started ([d13a1c72](https://github.com/zowe/zowe-explorer-intellij/commit/d13a1c72))
 
-## [1.2.0-221] (2024-04-15)
+## [1.2.0-223] (2024-04-15)
 
 ### Features
 

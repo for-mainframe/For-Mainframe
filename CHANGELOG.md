@@ -2,9 +2,10 @@
 
 All notable changes to the Zowe IntelliJ Plugin will be documented in this file.
 
-## [Unreleased]
+## [1.2.1-231] (2024-06-12)
 
 ### Features
+
 * Feature: GitHub issue #182 ([4631d76f](https://github.com/zowe/zowe-explorer-intellij/commit/4631d76f))
 * Feature: Change dialogs as DoNotAskOption is going to be removed soon ([0d6b5d57](https://github.com/zowe/zowe-explorer-intellij/commit/0d6b5d57))
 * Feature: Add 'Unknown' to fields in dataset properties dialog when there is no information for fields ([5b32a4df](https://github.com/zowe/zowe-explorer-intellij/commit/5b32a4df))
@@ -12,6 +13,7 @@ All notable changes to the Zowe IntelliJ Plugin will be documented in this file.
 * Feature: Conflicts dialog on copy/move improvement ([c8f4d525](https://github.com/zowe/zowe-explorer-intellij/commit/c8f4d525))
 
 ### Bugfixes
+
 * Bugfix: When all errors are corrected, the ok button is inactive ([4558495c](https://github.com/zowe/zowe-explorer-intellij/commit/4558495c))
 * Bugfix: Rename of the opened file causes exception ([09453311](https://github.com/zowe/zowe-explorer-intellij/commit/09453311))
 * Bugfix: Refresh does not work on the first try ([7af1c668](https://github.com/zowe/zowe-explorer-intellij/commit/7af1c668))
@@ -455,6 +457,7 @@ All notable changes to the Zowe IntelliJ Plugin will be documented in this file.
 * Bugfix: GitHub issue #85: The windows 'Add Working Set'/'Edit Working Set' are automatically resized if z/OSMF
   connection with very long name is added
 
+[1.2.1-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.0-231...1.2.1-231
 [1.2.0-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.1.2-231...1.2.0-231
 [1.1.2-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.1.1-231...1.1.2-231
 [1.1.1-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.1.0-231...1.1.1-231

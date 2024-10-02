@@ -117,6 +117,7 @@ dependencies {
     intellijIdeaCommunity(descriptor.sdkVersion, useInstaller = false)
     jetbrainsRuntime()
     instrumentationTools()
+    pluginVerifier()
     testFramework(TestFrameworkType.Plugin.Java)
   }
   implementation(group = "com.squareup.retrofit2", name = "retrofit", version = retrofit2Vertion)
@@ -148,6 +149,11 @@ intellijPlatform {
     ideaVersion {
       sinceBuild = descriptor.since
       untilBuild = descriptor.getUntil()
+    }
+  }
+  pluginVerification {
+    ides {
+      recommended()
     }
   }
 }
@@ -245,6 +251,13 @@ tasks {
 
     // To run unit tests only and do not trigger "uiTest" task related things (like "compileUiTestKotlin")
     onlyIf { !gradle.startParameter.taskNames.contains("uiTest") }
+
+    jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
+    jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
+    jvmArgs("--add-opens", "java.desktop/java.awt.event=ALL-UNNAMED")
+    jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+    jvmArgs("--add-exports", "java.base/jdk.internal.vm=ALL-UNNAMED")
+    jvmArgs("--add-opens", "java.base/java.nio.file=ALL-UNNAMED")
 
     testLogging {
       events("passed", "skipped", "failed")

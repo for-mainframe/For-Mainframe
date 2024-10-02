@@ -127,6 +127,8 @@ Example of how to see the output:<br/>
 
         <configDeclaration implementation="eu.ibagroup.formainframe.config.connect.ConnectionConfigDeclarationFactory"/>
 
+        <configDeclaration implementation="eu.ibagroup.formainframe.tso.config.TSOSessionConfigDeclarationFactory"/>
+
         <configDeclaration implementation="eu.ibagroup.formainframe.config.ws.FilesWorkingSetConfigDeclarationFactory"/>
 
         <configDeclaration implementation="eu.ibagroup.formainframe.config.ws.JesWorkingSetConfigDeclarationFactory"/>
@@ -248,9 +250,6 @@ Example of how to see the output:<br/>
 
         <operationRunner implementation="eu.ibagroup.formainframe.dataops.operations.RenameOperationRunnerFactory"/>
 
-        <operationRunner
-                implementation="eu.ibagroup.formainframe.dataops.operations.mover.ForceRenameOperationRunnerFactory"/>
-
         <operationRunner implementation="eu.ibagroup.formainframe.dataops.operations.InfoOperationRunnerFactory"/>
 
         <operationRunner implementation="eu.ibagroup.formainframe.dataops.operations.ZOSInfoOperationRunnerFactory"/>
@@ -307,6 +306,8 @@ Example of how to see the output:<br/>
 
         <postStartupActivity implementation="eu.ibagroup.formainframe.editor.ProjectStartupActivity"/>
 
+        <postStartupActivity implementation="eu.ibagroup.formainframe.rateus.RateUsStartupActivity"/>
+
         <applicationConfigurable id="eu.ibagroup.formainframe.config.MainframeConfigurableProvider"
                                  displayName="For Mainframe"
                                  provider="eu.ibagroup.formainframe.config.MainframeConfigurableProvider"/>
@@ -336,7 +337,7 @@ Example of how to see the output:<br/>
                     doNotActivateOnStart="true"/>
 
         <toolWindow id="TSO CLI" anchor="bottom"
-                    factoryClass="eu.ibagroup.formainframe.ui.build.tso.TSOWindowFactory"
+                    factoryClass="eu.ibagroup.formainframe.tso.TSOWindowFactory"
                     canCloseContents="true"
                     doNotActivateOnStart="true"/>
 
@@ -349,7 +350,8 @@ Example of how to see the output:<br/>
                   implementationClass="eu.ibagroup.formainframe.filetypes.UnknownDataSetFileType"/>
 
         <applicationService serviceInterface="eu.ibagroup.formainframe.config.ConfigService"
-                            serviceImplementation="eu.ibagroup.formainframe.config.ConfigServiceImpl"/>
+                            serviceImplementation="eu.ibagroup.formainframe.config.ConfigServiceImpl"
+                            testServiceImplementation="eu.ibagroup.formainframe.testutils.testServiceImpl.TestConfigServiceImpl"/>
 
         <applicationService serviceInterface="eu.ibagroup.formainframe.analytics.AnalyticsService"
                             serviceImplementation="eu.ibagroup.formainframe.analytics.AnalyticsServiceImpl"
@@ -359,9 +361,9 @@ Example of how to see the output:<br/>
                             serviceImplementation="eu.ibagroup.formainframe.config.connect.CredentialServiceImpl"
                             testServiceImplementation="eu.ibagroup.formainframe.testutils.testServiceImpl.TestCredentialsServiceImpl"/>
 
-
         <applicationService serviceInterface="eu.ibagroup.formainframe.config.ConfigSandbox"
-                            serviceImplementation="eu.ibagroup.formainframe.config.ConfigSandboxImpl"/>
+                            serviceImplementation="eu.ibagroup.formainframe.config.ConfigSandboxImpl"
+                            testServiceImplementation="eu.ibagroup.formainframe.testutils.testServiceImpl.TestConfigSandboxImpl"/>
 
         <applicationService serviceInterface="eu.ibagroup.formainframe.dataops.DataOpsManager"
                             serviceImplementation="eu.ibagroup.formainframe.dataops.DataOpsManagerImpl"
@@ -385,7 +387,12 @@ Example of how to see the output:<br/>
                             serviceImplementation="eu.ibagroup.formainframe.editor.ChangeContentServiceImpl"/>
 
         <applicationService serviceInterface="eu.ibagroup.formainframe.dataops.content.service.SyncProcessService"
-                            serviceImplementation="eu.ibagroup.formainframe.dataops.content.service.SyncProcessServiceImpl"/>
+                            serviceImplementation="eu.ibagroup.formainframe.dataops.content.service.SyncProcessServiceImpl"
+                            testServiceImplementation="eu.ibagroup.formainframe.testutils.testServiceImpl.TestSyncProcessServiceImpl"/>
+
+        <applicationService serviceInterface="eu.ibagroup.formainframe.telemetry.NotificationsService"
+                            serviceImplementation="eu.ibagroup.formainframe.telemetry.NotificationsServiceImpl"
+                            testServiceImplementation="eu.ibagroup.formainframe.testutils.testServiceImpl.TestNotificationsServiceImpl"/>
 
         <statusBarWidgetFactory id="eu.ibagroup.formainframe.editor.status.MfLineSeparatorWidgetFactory"
                                 implementation="eu.ibagroup.formainframe.editor.status.MfLineSeparatorWidgetFactory"
@@ -554,8 +561,8 @@ Example of how to see the output:<br/>
                 id="eu.ibagroup.formainframe.explorer.actions.SettingAction"
                 icon="AllIcons.General.Settings"/>
 
-        <action class="eu.ibagroup.formainframe.explorer.actions.TsoSessionCreateAction"
-                id="eu.ibagroup.formainframe.explorer.actions.TsoSessionCreateAction"
+        <action class="eu.ibagroup.formainframe.explorer.actions.TsoConsoleCreateAction"
+                id="eu.ibagroup.formainframe.explorer.actions.TsoConsoleCreateAction"
                 icon="AllIcons.Debugger.Console"/>
 
 
@@ -575,13 +582,6 @@ Example of how to see the output:<br/>
                 class="eu.ibagroup.formainframe.explorer.actions.RenameAction"
                 text="Rename">
             <keyboard-shortcut first-keystroke="F2" keymap="$default"/>
-        </action>
-
-        <action id="eu.ibagroup.formainframe.explorer.actions.ForceRenameAction"
-                class="eu.ibagroup.formainframe.explorer.actions.ForceRenameAction"
-                text="Force Rename"
-                use-shortcut-of="ForceRefresh">
-            <keyboard-shortcut first-keystroke="shift F2" keymap="$default"/>
         </action>
 
         <action id="eu.ibagroup.formainframe.explorer.actions.DuplicateMemberAction"
@@ -752,7 +752,7 @@ Example of how to see the output:<br/>
             <reference id="eu.ibagroup.formainframe.explorer.actions.AddConnectionAction"/>
             <reference id="eu.ibagroup.formainframe.explorer.actions.AddWorkingSetAction"/>
             <reference id="eu.ibagroup.formainframe.explorer.actions.AddJesWorkingSetAction"/>
-            <reference id="eu.ibagroup.formainframe.explorer.actions.TsoSessionCreateAction"/>
+            <reference id="eu.ibagroup.formainframe.explorer.actions.TsoConsoleCreateAction"/>
         </group>
 
         <group id="eu.ibagroup.formainframe.actions.FilesActionBarGroup">
@@ -787,7 +787,6 @@ Example of how to see the output:<br/>
             <separator/>
             <reference id="eu.ibagroup.formainframe.explorer.actions.EditFilesWorkingSetAction"/>
             <reference id="eu.ibagroup.formainframe.explorer.actions.RenameAction"/>
-            <reference id="eu.ibagroup.formainframe.explorer.actions.ForceRenameAction"/>
             <reference id="eu.ibagroup.formainframe.explorer.actions.EditMaskAction"/>
             <reference id="eu.ibagroup.formainframe.explorer.actions.DuplicateMemberAction"/>
             <separator/>

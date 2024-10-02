@@ -1,11 +1,15 @@
 /*
+ * Copyright (c) 2020-2024 IBA Group.
+ *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * https://www.eclipse.org/legal/epl-v20.html
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Copyright IBA Group 2020
+ * Contributors:
+ *   IBA Group
+ *   Zowe Community
  */
 
 package workingset
@@ -18,6 +22,7 @@ import auxiliary.containers.*
 import com.intellij.remoterobot.RemoteRobot
 import com.intellij.remoterobot.fixtures.ComponentFixture
 import com.intellij.remoterobot.fixtures.HeavyWeightWindowFixture
+import com.intellij.remoterobot.launcher.*
 import com.intellij.remoterobot.search.locators.Locator
 import io.kotest.matchers.string.shouldContain
 import org.junit.jupiter.api.*
@@ -27,7 +32,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
-import workingset.testutils.injectListAllAllocatedDatasets
+import testutils.ProcessManager
+import workingset.*
 import java.time.Duration
 import java.util.stream.Stream
 
@@ -36,7 +42,8 @@ import java.util.stream.Stream
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(RemoteRobotExtension::class)
-class AllocateDatasetTest : WorkingSetBase() {
+class AllocateDatasetTest : IdeaInteractionClass() {
+
     private var closableFixtureCollector = ClosableFixtureCollector()
     private var fixtureStack = mutableListOf<Locator>()
     private var wantToClose = mutableListOf(
@@ -48,6 +55,7 @@ class AllocateDatasetTest : WorkingSetBase() {
     private val datasetMask = "$ZOS_USERID.ALLOC."
     private val recordFormats = mutableListOf("F", "FB", "V", "VA", "VB")
     private var datasetsToBeDeleted = mutableListOf<String>()
+    private lateinit var processManager: ProcessManager
 
     companion object {
         @JvmStatic
@@ -61,7 +69,8 @@ class AllocateDatasetTest : WorkingSetBase() {
     private var mapListDatasets = mutableMapOf<String, String>()
 
     @BeforeAll
-    fun setUpAll(testInfo: TestInfo, remoteRobot: RemoteRobot) {
+    fun setUpAll(testInfo: TestInfo) {
+        processManager = ProcessManager()
         startMockServer()
         setUpTestEnvironment(fixtureStack, closableFixtureCollector, remoteRobot)
         createValidConnectionWithMock(
@@ -78,19 +87,16 @@ class AllocateDatasetTest : WorkingSetBase() {
      * Closes the project and clears test environment, deletes created datasets.
      */
     @AfterAll
-    fun tearDownAll(remoteRobot: RemoteRobot) {
-//        deleteDatasets(remoteRobot)
+    fun tearDownAll() {
+        processManager.close()
         mockServer.shutdown()
-        clearEnvironment(fixtureStack, closableFixtureCollector, remoteRobot)
-        closeIntelligentProject(fixtureStack, remoteRobot)
     }
 
     /**
      * Closes all unclosed closable fixtures that we want to close.
      */
     @AfterEach
-    fun tearDown(remoteRobot: RemoteRobot) {
-        deleteDatasets(remoteRobot)
+    fun tearDown() {
         responseDispatcher.removeAllEndpoints()
         closableFixtureCollector.closeWantedClosables(wantToClose, remoteRobot)
     }
@@ -216,26 +222,5 @@ class AllocateDatasetTest : WorkingSetBase() {
             closableFixtureCollector.closeOnceIfExists(AllocateDatasetDialog.name)
 
         }
-    }
-
-
-//    private val datasetMask = "$ZOS_USERID.ALLOC."
-    /**
-     * Deletes created datasets.
-     */
-    private fun deleteDatasets(remoteRobot: RemoteRobot) {
-        injectListAllAllocatedDatasets(datasetName.uppercase(), mapListDatasets)
-        responseDispatcher.injectListMembers(NO_MEMBERS)
-        refreshWorkSpace(wsName, fixtureStack, remoteRobot)
-        compressAndDecompressTree(wsName, fixtureStack, remoteRobot)
-
-        datasetsToBeDeleted.forEach { s ->
-            mapListDatasets.remove(s)
-            responseDispatcher.injectAllocatedDatasets(s, buildFinalListDatasetJson(mapListDatasets), s)
-            responseDispatcher.injectDeleteDataset(s)
-            deleteDataset(s, fixtureStack, remoteRobot)
-        }
-        compressAndDecompressTree(wsName, fixtureStack, remoteRobot)
-        return datasetsToBeDeleted.clear()
     }
 }

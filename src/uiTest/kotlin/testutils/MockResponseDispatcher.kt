@@ -1,15 +1,20 @@
 /*
+ * Copyright (c) 2020-2024 IBA Group.
+ *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * https://www.eclipse.org/legal/epl-v20.html
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Copyright IBA Group 2020
+ * Contributors:
+ *   IBA Group
+ *   Zowe Community
  */
 
 package testutils
 //import auxiliary.buildFinalListDatasetJson
+import auxiliary.buildListMembersJson
 import auxiliary.responseDispatcher
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
@@ -84,13 +89,7 @@ open class MockResponseDispatcher : Dispatcher() {
       { MockResponse().setBody(body) }
     )
   }
-  fun injectTestInfoForPdsDataset(testInfoDisplayedName: String, body: String, pdsName:String, handler: Boolean = false){
-    responseDispatcher.injectEndpoint(
-      "${testInfoDisplayedName}_${pdsName}_restfiles",
-      { it?.requestLine?.contains("POST /zosmf/restfiles/ds/${pdsName}") ?: handler },
-      { MockResponse().setBody(body) }
-    )
-  }
+
 
   fun injectListMembers(body: String, handler: Boolean = false){
     responseDispatcher.injectEndpoint(
@@ -150,30 +149,30 @@ open class MockResponseDispatcher : Dispatcher() {
     )
   }
 
-  internal open fun injectRenameMember(testInfo: TestInfo, datasetName: String, memberNameNew: String, memberNameOld: String, handler: Boolean = false){
-    responseDispatcher.injectEndpoint(
-      "${testInfo.displayName}_restfiles_rename_member",
-      { it?.requestLine?.contains("PUT /zosmf/restfiles/ds/${datasetName}(${memberNameNew})") ?: false },
-      { MockResponse().setBody("{\"request\":\"rename\",\"from-dataset\":{\"dsn\":\"${datasetName}\",\"member\":\"${memberNameOld}\"}}") }
-    )
-  }
-  fun injectMemberList(testInfo: TestInfo, datasetName: String, listElem: List<String>, listName: String? = null){//= true){
-    val requestName = if (listName != null) {
-      "${testInfo.displayName}_restfiles_listmembers$listName"
-    } else {
-      "${testInfo.displayName}_restfiles_listmembers"
-    }
-
-    val body_headr = "{\"items\":["
-    val body_tell = "],\"returnedRows\": ${listElem.size},\"JSONversion\": 1}"
-    val memebersString = listElem.joinToString(separator = ",") { "{\"member\": \"$it\"}" }
-
-    injectEndpoint(
-      requestName,
-      { it?.requestLine?.contains("GET /zosmf/restfiles/ds/${datasetName}/member") ?: false},
-      { MockResponse().setBody(body_headr + memebersString + body_tell)}
-    )
-  }
+//  internal open fun injectRenameMember(testInfo: TestInfo, datasetName: String, memberNameNew: String, memberNameOld: String, handler: Boolean = false){
+//    responseDispatcher.injectEndpoint(
+//      "${testInfo.displayName}_restfiles_rename_member",
+//      { it?.requestLine?.contains("PUT /zosmf/restfiles/ds/${datasetName}(${memberNameNew})") ?: false },
+//      { MockResponse().setBody("{\"request\":\"rename\",\"from-dataset\":{\"dsn\":\"${datasetName}\",\"member\":\"${memberNameOld}\"}}") }
+//    )
+//  }
+//  fun injectMemberList(testInfo: TestInfo, datasetName: String, listElem: List<String>, listName: String? = null){//= true){
+//    val requestName = if (listName != null) {
+//      "${testInfo.displayName}_restfiles_listmembers$listName"
+//    } else {
+//      "${testInfo.displayName}_restfiles_listmembers"
+//    }
+//
+//    val body_headr = "{\"items\":["
+//    val body_tell = "],\"returnedRows\": ${listElem.size},\"JSONversion\": 1}"
+//    val memebersString = listElem.joinToString(separator = ",") { "{\"member\": \"$it\"}" }
+//
+//    injectEndpoint(
+//      requestName,
+//      { it?.requestLine?.contains("GET /zosmf/restfiles/ds/${datasetName}/member") ?: false},
+//      { MockResponse().setBody(body_headr + memebersString + body_tell)}
+//    )
+//  }
 
 
 
@@ -202,4 +201,14 @@ open class MockResponseDispatcher : Dispatcher() {
       ?.let { it(request) }
       ?: MockResponse().setBody("Response is not implemented").setResponseCode(404)
   }
+}
+
+fun injectSingleMember(testInfo:TestInfo, datasetName: String, listMembersInDataset:  MutableList<String>){
+  responseDispatcher.injectEndpoint(
+    "${testInfo.displayName}_restfiles_listmembers",
+    { it?.requestLine?.contains("GET /zosmf/restfiles/ds/${datasetName}/member") ?: false },
+    {
+      MockResponse().setBody(buildListMembersJson(listMembersInDataset))
+    }
+  )
 }

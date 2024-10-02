@@ -1,11 +1,15 @@
 /*
+ * Copyright (c) 2020-2024 IBA Group.
+ *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * https://www.eclipse.org/legal/epl-v20.html
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Copyright IBA Group 2020
+ * Contributors:
+ *   IBA Group
+ *   Zowe Community
  */
 
 package eu.ibagroup.formainframe.config.ws.ui
@@ -26,11 +30,8 @@ import eu.ibagroup.formainframe.common.ui.tableWithToolbar
 import eu.ibagroup.formainframe.config.connect.ConnectionConfig
 import eu.ibagroup.formainframe.config.connect.ConnectionConfigBase
 import eu.ibagroup.formainframe.config.ws.WorkingSetConfig
-import eu.ibagroup.formainframe.utils.clone
+import eu.ibagroup.formainframe.utils.*
 import eu.ibagroup.formainframe.utils.crudable.Crudable
-import eu.ibagroup.formainframe.utils.nullable
-import eu.ibagroup.formainframe.utils.validateForBlank
-import eu.ibagroup.formainframe.utils.validateWorkingSetName
 import java.awt.Dimension
 import javax.swing.JComponent
 
@@ -97,7 +98,7 @@ abstract class AbstractWsDialog<Connection : ConnectionConfigBase, WSConfig : Wo
    * @return applied state.
    */
   open fun onWSApplied(state: WSDState): WSDState = state
-  
+
   private val panel by lazy {
     panel {
       row {
@@ -142,13 +143,7 @@ abstract class AbstractWsDialog<Connection : ConnectionConfigBase, WSConfig : Wo
                   state.connectionUuid = (selectedItem as ConnectionConfig).uuid
                 }
               }
-                .validationOnApply {
-                  if (it.selectedItem == null) {
-                    ValidationInfo("You must provide a connection", it)
-                  } else {
-                    null
-                  }
-                }
+                .validationOnApply { validateConnectionSelection(it) }
             }
           }
       }.layout(RowLayout.LABEL_ALIGNED)

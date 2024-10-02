@@ -1,11 +1,15 @@
 /*
+ * Copyright (c) 2020-2024 IBA Group.
+ *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * https://www.eclipse.org/legal/epl-v20.html
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Copyright IBA Group 2020
+ * Contributors:
+ *   IBA Group
+ *   Zowe Community
  */
 
 package eu.ibagroup.formainframe.explorer.actions
@@ -13,14 +17,13 @@ package eu.ibagroup.formainframe.explorer.actions
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.ui.HyperlinkAdapter
-import com.intellij.ui.content.ContentManagerUtil
-import eu.ibagroup.formainframe.config.configCrudable
+import eu.ibagroup.formainframe.config.ConfigService
 import eu.ibagroup.formainframe.config.connect.CredentialService
 import eu.ibagroup.formainframe.config.connect.ui.zosmf.ConnectionDialog
 import eu.ibagroup.formainframe.config.connect.ui.zosmf.ConnectionDialogState
 import eu.ibagroup.formainframe.config.connect.ui.zosmf.initEmptyUuids
+import eu.ibagroup.formainframe.explorer.ACTION_TOOLBAR
 import eu.ibagroup.formainframe.explorer.hints.Hint
 import eu.ibagroup.formainframe.explorer.ui.EXPLORER_VIEW
 import eu.ibagroup.formainframe.explorer.ui.FileExplorerView
@@ -41,14 +44,14 @@ class AddConnectionAction : AnAction() {
   /** Shows connection dialog */
   override fun actionPerformed(e: AnActionEvent) {
     val state = ConnectionDialog.showAndTestConnection(
-      crudable = configCrudable,
+      crudable = ConfigService.getService().crudable,
       project = e.project,
-      initialState = ConnectionDialogState().initEmptyUuids(configCrudable)
+      initialState = ConnectionDialogState().initEmptyUuids(ConfigService.getService().crudable)
     )
     if (state != null) {
       val connectionConfig = state.connectionConfig
-      CredentialService.instance.setCredentials(connectionConfig.uuid, state.username, state.password)
-      configCrudable.add(connectionConfig)
+      CredentialService.getService().setCredentials(connectionConfig.uuid, state.username, state.password)
+      ConfigService.getService().crudable.add(connectionConfig)
       showHint(e)
     } else {
       return
@@ -68,9 +71,7 @@ class AddConnectionAction : AnAction() {
 private fun showHint(e: AnActionEvent) {
   val view = e.getData(EXPLORER_VIEW)
   if (view?.myTree?.isEmpty == true) {
-    val contentManager = ContentManagerUtil.getContentManagerFromContext(e.dataContext, true)
-    val selectedContent = contentManager?.selectedContent
-    val toolbar = (selectedContent?.component.castOrNull<SimpleToolWindowPanel>())?.toolbar
+    val toolbar = e.getData(ACTION_TOOLBAR)?.component
     val component = if (toolbar?.components?.isNotEmpty() == true) {
       toolbar.components?.get(0).castOrNull<JComponent>()
     } else {
@@ -83,7 +84,7 @@ private fun showHint(e: AnActionEvent) {
         else -> null
       }
       val text = "Now you can add working set to browse<br> $content.<br>" +
-          "<a href\"\">Click here to add...</a>"
+        "<a href\"\">Click here to add...</a>"
       val hyperlinkAction = when (view) {
         is FileExplorerView -> {
           { AddWorkingSetAction().actionPerformed(e) }

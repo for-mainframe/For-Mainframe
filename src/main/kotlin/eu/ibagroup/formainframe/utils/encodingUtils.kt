@@ -1,11 +1,15 @@
 /*
+ * Copyright (c) 2020-2024 IBA Group.
+ *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * https://www.eclipse.org/legal/epl-v20.html
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Copyright IBA Group 2020
+ * Contributors:
+ *   IBA Group
+ *   Zowe Community
  */
 
 package eu.ibagroup.formainframe.utils
@@ -18,6 +22,7 @@ import com.intellij.ide.IdeBundle
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbAwareAction
@@ -68,7 +73,7 @@ fun saveIn(project: Project?, virtualFile: VirtualFile, charset: Charset) {
  */
 fun reloadIn(project: Project?, virtualFile: VirtualFile, charset: Charset, indicator: ProgressIndicator?) {
   val syncProvider = DocumentedSyncProvider(virtualFile, SaveStrategy.syncOnOpen(project))
-  val contentSynchronizer = DataOpsManager.instance.getContentSynchronizer(virtualFile)
+  val contentSynchronizer = DataOpsManager.getService().getContentSynchronizer(virtualFile)
   runWriteActionInEdtAndWait { changeEncodingTo(virtualFile, charset) }
   contentSynchronizer?.synchronizeWithRemote(syncProvider, indicator)
 }
@@ -121,7 +126,7 @@ data class EncodingInspection(
  * @see isSafeToConvertTo
  */
 fun inspectSafeEncodingChange(virtualFile: VirtualFile, charset: Charset): EncodingInspection {
-  val contentSynchronizer = DataOpsManager.instance.getContentSynchronizer(virtualFile)
+  val contentSynchronizer = DataOpsManager.getService().getContentSynchronizer(virtualFile)
   val syncProvider = DocumentedSyncProvider(virtualFile)
   val fileNotSynced = contentSynchronizer?.isFileUploadNeeded(syncProvider) == true
   val text = syncProvider.getDocument()?.text
@@ -138,7 +143,12 @@ fun inspectSafeEncodingChange(virtualFile: VirtualFile, charset: Charset): Encod
  * Change file encoding action that invokes the change encoding dialog.
  * @return true if changed or false otherwise.
  */
-fun changeFileEncodingAction(project: Project?, virtualFile: VirtualFile, attributes: RemoteUssAttributes, charset: Charset): Boolean {
+fun changeFileEncodingAction(
+  project: Project?,
+  virtualFile: VirtualFile,
+  attributes: RemoteUssAttributes,
+  charset: Charset
+): Boolean {
   val encodingInspection = inspectSafeEncodingChange(virtualFile, charset)
   val safeToReload = encodingInspection.safeToReload
   val safeToConvert = encodingInspection.safeToConvert
@@ -234,7 +244,7 @@ fun showSaveAnywayDialog(charset: Charset): Boolean {
   val result = Messages.showDialog(
     XmlStringUtil.wrapInHtml(
       IdeBundle.message("encoding.unsupported.characters.message", charset.displayName()) +
-      "<br><br>Content may change after saving."
+        "<br><br>Content may change after saving."
     ),
     IdeBundle.message("incompatible.encoding.dialog.title", charset.displayName()),
     arrayOf("Save Anyway", CommonBundle.getCancelButtonText()),

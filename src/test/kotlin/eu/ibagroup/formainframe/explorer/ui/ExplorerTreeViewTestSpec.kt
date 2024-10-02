@@ -1,11 +1,15 @@
 /*
+ * Copyright (c) 2020-2024 IBA Group.
+ *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * https://www.eclipse.org/legal/epl-v20.html
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Copyright IBA Group 2020
+ * Contributors:
+ *   IBA Group
+ *   Zowe Community
  */
 
 package eu.ibagroup.formainframe.explorer.ui
@@ -24,17 +28,10 @@ import eu.ibagroup.formainframe.explorer.Explorer
 import eu.ibagroup.formainframe.explorer.FilesWorkingSet
 import eu.ibagroup.formainframe.testutils.WithApplicationShouldSpec
 import eu.ibagroup.formainframe.testutils.testServiceImpl.TestDataOpsManagerImpl
-import eu.ibagroup.formainframe.utils.service
 import eu.ibagroup.formainframe.vfs.MFVirtualFile
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkConstructor
-import io.mockk.mockkStatic
-import io.mockk.spyk
-import io.mockk.unmockkAll
+import io.mockk.*
 import kotlin.reflect.KFunction
 
 class ExplorerTreeViewTestSpec : WithApplicationShouldSpec({
@@ -52,11 +49,12 @@ class ExplorerTreeViewTestSpec : WithApplicationShouldSpec({
     val openFilesMock = arrayOf<VirtualFile>(mockk(), mockk())
     var closedFileSize = 0
 
-    val dataOpsManagerService =
-      ApplicationManager.getApplication().service<DataOpsManager>() as TestDataOpsManagerImpl
+    val dataOpsManagerService = DataOpsManager.getService() as TestDataOpsManagerImpl
 
     val contentSynchronizerMock = mockk<ContentSynchronizer>()
     every { contentSynchronizerMock.markAsNotNeededForSync(any()) } returns Unit
+
+    val fileEditorManager = mockk<FileEditorManager>()
 
     beforeEach {
       mockkConstructor(CommonExplorerTreeStructure::class)
@@ -73,16 +71,13 @@ class ExplorerTreeViewTestSpec : WithApplicationShouldSpec({
       )
 
       closedFileSize = 0
-      mockkStatic(FileEditorManager::getInstance)
-      every { FileEditorManager.getInstance(any()) } returns object : TestFileEditorManager() {
-        override fun getOpenFiles(): Array<VirtualFile> {
-          return openFilesMock
-        }
-
-        override fun closeFile(file: VirtualFile) {
-          closedFileSize++
-        }
+      every { fileEditorManager.openFiles } returns openFilesMock
+      every { fileEditorManager.closeFile(any<VirtualFile>()) } answers {
+        closedFileSize++
       }
+
+      mockkStatic(FileEditorManager::getInstance)
+      every { FileEditorManager.getInstance(any()) } returns fileEditorManager
 
       val isAncestorRef: (VirtualFile, VirtualFile, Boolean) -> Boolean = VfsUtilCore::isAncestor
       mockkStatic(isAncestorRef as KFunction<*>)
@@ -93,23 +88,26 @@ class ExplorerTreeViewTestSpec : WithApplicationShouldSpec({
           return contentSynchronizerMock
         }
 
-        override fun tryToGetAttributes(file: VirtualFile): FileAttributes? {
+        override fun tryToGetAttributes(file: VirtualFile): FileAttributes {
           return mockk()
         }
+
+        override fun <A : FileAttributes, F : VirtualFile> getAttributesService(
+          attributesClass: Class<out A>,
+          vFileClass: Class<out F>
+        ): AttributesService<A, F> {
+          return if (attributesClass == RemoteUssAttributes::class.java && vFileClass == MFVirtualFile::class.java) {
+            attributesServiceMock as AttributesService<A, F>
+          } else {
+            super.getAttributesService(attributesClass, vFileClass)
+          }
+        }
       }
-      mockkObject(dataOpsManagerService.testInstance)
 
       attributesServiceMock = mockk()
       every {
         attributesServiceMock.updateAttributes(any<RemoteUssAttributes>(), any<RemoteUssAttributes>())
       } returns Unit
-
-      every {
-        dataOpsManagerService.testInstance.getAttributesService(
-          RemoteUssAttributes::class.java,
-          MFVirtualFile::class.java
-        )
-      } returns attributesServiceMock
     }
 
     afterEach {
@@ -132,21 +130,39 @@ class ExplorerTreeViewTestSpec : WithApplicationShouldSpec({
     // updateAttributesForChildrenInEditor
     should("update attributes for files in editor if renamed file is their ancestor") {
       var numOfCalls = 0
-      every { dataOpsManagerService.testInstance.tryToGetAttributes(any()) } answers {
-        numOfCalls++
-        if (numOfCalls == 1) {
-          mockk<RemoteUssAttributes> {
-            every { path } returns "/u/USER/dir/"
-            every { parentDirPath } returns "/u/USER"
+
+      dataOpsManagerService.testInstance = object : TestDataOpsManagerImpl() {
+        override fun getContentSynchronizer(file: VirtualFile): ContentSynchronizer {
+          return contentSynchronizerMock
+        }
+
+        override fun tryToGetAttributes(file: VirtualFile): FileAttributes {
+          numOfCalls++
+          return if (numOfCalls == 1) {
+            mockk<RemoteUssAttributes> {
+              every { path } returns "/u/USER/dir/"
+              every { parentDirPath } returns "/u/USER"
+            }
+          } else {
+            RemoteUssAttributes(
+              "/u/USER/dir/file.txt",
+              false,
+              mockk(),
+              "https://hostname:port",
+              mutableListOf()
+            )
           }
-        } else {
-          RemoteUssAttributes(
-            "/u/USER/dir/file.txt",
-            false,
-            mockk(),
-            "https://hostname:port",
-            mutableListOf()
-          )
+        }
+
+        override fun <A : FileAttributes, F : VirtualFile> getAttributesService(
+          attributesClass: Class<out A>,
+          vFileClass: Class<out F>
+        ): AttributesService<A, F> {
+          return if (attributesClass == RemoteUssAttributes::class.java && vFileClass == MFVirtualFile::class.java) {
+            attributesServiceMock as AttributesService<A, F>
+          } else {
+            super.getAttributesService(attributesClass, vFileClass)
+          }
         }
       }
 
@@ -173,10 +189,27 @@ class ExplorerTreeViewTestSpec : WithApplicationShouldSpec({
     }
     should("don't update attributes for files in editor if old attributes are not USS attributes") {
       var numOfCalls = 0
-      every { dataOpsManagerService.testInstance.tryToGetAttributes(any()) } answers {
-        numOfCalls++
-        if (numOfCalls == 1) mockk<RemoteUssAttributes>()
-        else mockk<FileAttributes>()
+
+      dataOpsManagerService.testInstance = object : TestDataOpsManagerImpl() {
+        override fun getContentSynchronizer(file: VirtualFile): ContentSynchronizer {
+          return contentSynchronizerMock
+        }
+
+        override fun tryToGetAttributes(file: VirtualFile): FileAttributes {
+          numOfCalls++
+          return if (numOfCalls == 1) mockk<RemoteUssAttributes>() else mockk<FileAttributes>()
+        }
+
+        override fun <A : FileAttributes, F : VirtualFile> getAttributesService(
+          attributesClass: Class<out A>,
+          vFileClass: Class<out F>
+        ): AttributesService<A, F> {
+          return if (attributesClass == RemoteUssAttributes::class.java && vFileClass == MFVirtualFile::class.java) {
+            attributesServiceMock as AttributesService<A, F>
+          } else {
+            super.getAttributesService(attributesClass, vFileClass)
+          }
+        }
       }
 
       fileExplorerView.updateAttributesForChildrenInEditor(mockk<MFVirtualFile>(), "newDir")

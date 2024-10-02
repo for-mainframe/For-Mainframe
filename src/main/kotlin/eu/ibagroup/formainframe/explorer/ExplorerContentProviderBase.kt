@@ -1,11 +1,15 @@
 /*
+ * Copyright (c) 2020-2024 IBA Group.
+ *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * https://www.eclipse.org/legal/epl-v20.html
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Copyright IBA Group 2020
+ * Contributors:
+ *   IBA Group
+ *   Zowe Community
  */
 
 package eu.ibagroup.formainframe.explorer
@@ -13,6 +17,8 @@ package eu.ibagroup.formainframe.explorer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.util.Disposer
@@ -24,6 +30,8 @@ import eu.ibagroup.formainframe.utils.getAncestorNodes
 import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JComponent
 import kotlin.concurrent.withLock
+
+val ACTION_TOOLBAR = DataKey.create<ActionToolbar>("actionToolbar")
 
 fun interface CutBufferListener {
 
@@ -44,14 +52,14 @@ abstract class ExplorerContentProviderBase<Connection: ConnectionConfigBase, E :
   abstract val place: String
 
   /**
-   * Should build toolbar component that will be located at above the explorer view.
+   * Should build action toolbar that will be located at above the explorer view.
    * @param target target component ([SimpleToolWindowPanel] by default) inside which the toolbar will be located.
-   * @return toolbar component instance.
+   * @return action toolbar instance.
    */
-  open fun buildActionToolbar(target: JComponent?): JComponent {
+  open fun buildActionToolbar(target: JComponent?): ActionToolbar {
     return ActionManager.getInstance().createActionToolbar(place, actionGroup, true).apply {
       targetComponent = target
-    }.component
+    }
   }
 
   /**
@@ -62,11 +70,14 @@ abstract class ExplorerContentProviderBase<Connection: ConnectionConfigBase, E :
   override fun buildExplorerContent(parentDisposable: Disposable, project: Project): JComponent {
     return object : SimpleToolWindowPanel(true, true), Disposable {
 
+      private val actionToolbar: ActionToolbar
+
       private var builtContent: JComponent? = null
 
       init {
         Disposer.register(parentDisposable, this)
-        toolbar = buildActionToolbar(this)
+        actionToolbar = buildActionToolbar(this)
+        toolbar = actionToolbar.component
         setContent(buildContent(this, project).also { builtContent = it })
       }
 
@@ -74,6 +85,7 @@ abstract class ExplorerContentProviderBase<Connection: ConnectionConfigBase, E :
         val view = getExplorerView(project)
         return when {
           EXPLORER_VIEW.`is`(dataId) -> view
+          ACTION_TOOLBAR.`is`(dataId) -> actionToolbar
           else -> null
         }
       }

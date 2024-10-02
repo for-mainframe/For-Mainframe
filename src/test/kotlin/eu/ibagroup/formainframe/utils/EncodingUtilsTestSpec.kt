@@ -1,11 +1,15 @@
 /*
+ * Copyright (c) 2020-2024 IBA Group.
+ *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * https://www.eclipse.org/legal/epl-v20.html
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Copyright IBA Group 2020
+ * Contributors:
+ *   IBA Group
+ *   Zowe Community
  */
 
 package eu.ibagroup.formainframe.utils
@@ -16,7 +20,7 @@ import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ex.InspectionProfileImpl
 import com.intellij.codeInspection.ex.InspectionToolWrapper
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
@@ -36,12 +40,10 @@ import eu.ibagroup.formainframe.testutils.WithApplicationShouldSpec
 import eu.ibagroup.formainframe.testutils.testServiceImpl.TestDataOpsManagerImpl
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkConstructor
-import io.mockk.mockkObject
-import io.mockk.mockkStatic
-import io.mockk.unmockkAll
+import io.mockk.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.charset.Charset
@@ -61,7 +63,7 @@ class EncodingUtilsTestSpec : WithApplicationShouldSpec({
     var isEncodingSet = false
 
     val contentSynchronizerMock = mockk<ContentSynchronizer>()
-    val dataOpsManagerService = ApplicationManager.getApplication().service<DataOpsManager>() as TestDataOpsManagerImpl
+    val dataOpsManagerService = DataOpsManager.getService() as TestDataOpsManagerImpl
     every { contentSynchronizerMock.successfulContentStorage(any()) } returns bytes
 
     val charsetName = "charsetName"
@@ -286,7 +288,11 @@ class EncodingUtilsTestSpec : WithApplicationShouldSpec({
 
       every { anyConstructed<ChangeEncodingDialog>().exitCode } returns ChangeEncodingDialog.RELOAD_EXIT_CODE
 
-      val actual = changeFileEncodingAction(projectMock, virtualFileMock, attributesMock, charsetMock)
+      val actual = runBlocking {
+        withContext(Dispatchers.EDT) {
+          changeFileEncodingAction(projectMock, virtualFileMock, attributesMock, charsetMock)
+        }
+      }
 
       assertSoftly { actual shouldBe true }
     }
@@ -296,7 +302,11 @@ class EncodingUtilsTestSpec : WithApplicationShouldSpec({
 
       every { anyConstructed<ChangeEncodingDialog>().exitCode } returns ChangeEncodingDialog.CONVERT_EXIT_CODE
 
-      val actual = changeFileEncodingAction(projectMock, virtualFileMock, attributesMock, charsetMock)
+      val actual = runBlocking {
+        withContext(Dispatchers.EDT) {
+          changeFileEncodingAction(projectMock, virtualFileMock, attributesMock, charsetMock)
+        }
+      }
 
       assertSoftly { actual shouldBe true }
     }
@@ -306,7 +316,11 @@ class EncodingUtilsTestSpec : WithApplicationShouldSpec({
 
       every { anyConstructed<ChangeEncodingDialog>().exitCode } returns 1
 
-      val actual = changeFileEncodingAction(projectMock, virtualFileMock, attributesMock, charsetMock)
+      val actual = runBlocking {
+        withContext(Dispatchers.EDT) {
+          changeFileEncodingAction(projectMock, virtualFileMock, attributesMock, charsetMock)
+        }
+      }
 
       assertSoftly { actual shouldBe false }
     }

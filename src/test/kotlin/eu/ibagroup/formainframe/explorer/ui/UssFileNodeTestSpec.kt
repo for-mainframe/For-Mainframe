@@ -1,11 +1,15 @@
 /*
+ * Copyright (c) 2020-2024 IBA Group.
+ *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * https://www.eclipse.org/legal/epl-v20.html
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Copyright IBA Group 2020
+ * Contributors:
+ *   IBA Group
+ *   Zowe Community
  */
 
 package eu.ibagroup.formainframe.explorer.ui
@@ -14,10 +18,7 @@ import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.TreeAnchorizer
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.FileNavigator
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.showYesNoDialog
@@ -28,34 +29,22 @@ import eu.ibagroup.formainframe.dataops.DataOpsManager
 import eu.ibagroup.formainframe.dataops.attributes.FileAttributes
 import eu.ibagroup.formainframe.dataops.attributes.RemoteUssAttributes
 import eu.ibagroup.formainframe.dataops.content.synchronizer.ContentSynchronizer
-import eu.ibagroup.formainframe.dataops.content.synchronizer.DocumentedSyncProvider
 import eu.ibagroup.formainframe.dataops.content.synchronizer.SyncProvider
 import eu.ibagroup.formainframe.dataops.content.synchronizer.checkFileForSync
-import eu.ibagroup.formainframe.explorer.Explorer
-import eu.ibagroup.formainframe.explorer.ExplorerContentProvider
-import eu.ibagroup.formainframe.explorer.ExplorerUnit
-import eu.ibagroup.formainframe.explorer.FileExplorer
-import eu.ibagroup.formainframe.explorer.FileExplorerContentProvider
-import eu.ibagroup.formainframe.explorer.UIComponentManager
-import eu.ibagroup.formainframe.explorer.WorkingSet
+import eu.ibagroup.formainframe.explorer.*
+import eu.ibagroup.formainframe.telemetry.NotificationsService
 import eu.ibagroup.formainframe.testutils.WithApplicationShouldSpec
 import eu.ibagroup.formainframe.testutils.testServiceImpl.TestDataOpsManagerImpl
+import eu.ibagroup.formainframe.testutils.testServiceImpl.TestNotificationsServiceImpl
 import eu.ibagroup.formainframe.testutils.testServiceImpl.TestUIComponentManager
 import eu.ibagroup.formainframe.utils.isBeingEditingNow
-import eu.ibagroup.formainframe.utils.service
+import eu.ibagroup.formainframe.utils.runInEdtAndWait
 import eu.ibagroup.formainframe.vfs.MFVirtualFile
 import eu.ibagroup.formainframe.vfs.MFVirtualFileSystem
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.mockk.Runs
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.mockkStatic
-import io.mockk.spyk
+import io.mockk.*
 import javax.swing.Icon
 import javax.swing.tree.TreePath
 import kotlin.reflect.KFunction
@@ -97,26 +86,16 @@ class UssFileNodeTestSpec : WithApplicationShouldSpec({
         mockkStatic(TreeAnchorizer::class)
         every { TreeAnchorizer.getService().createAnchor(any()) } returns mockk()
 
-        uiComponentManagerService =
-          ApplicationManager.getApplication().service<UIComponentManager>() as TestUIComponentManager
+        uiComponentManagerService = UIComponentManager.getService() as TestUIComponentManager
         uiComponentManagerService.testInstance = object : TestUIComponentManager() {
           override fun <E : Explorer<*, *>> getExplorerContentProvider(
             clazz: Class<out E>
-          ): ExplorerContentProvider<out ConnectionConfigBase, out Explorer<*, *>>? {
+          ): ExplorerContentProvider<out ConnectionConfigBase, out Explorer<*, *>> {
             return mockk()
           }
         }
-//        mockkObject(TestUIComponentManager)
-//        every {
-//          UIComponentManager
-//            .INSTANCE
-//            .getExplorerContentProvider<Explorer<ConnectionConfig, WorkingSet<ConnectionConfig, UssFileNode>>>(any())
-//        } returns mockk()
 
         explorerTreeNodeMock = mockk()
-
-        mockkObject(DataOpsManager)
-        every { DataOpsManager.instance } returns mockk()
 
         explorer = mockk()
         every { explorer.componentManager } returns ApplicationManager.getApplication()
@@ -124,7 +103,7 @@ class UssFileNodeTestSpec : WithApplicationShouldSpec({
         explorerUnitMock = mockk()
         every { explorerUnitMock.explorer } returns explorer
 
-        dataOpsManagerService = ApplicationManager.getApplication().service<DataOpsManager>() as TestDataOpsManagerImpl
+        dataOpsManagerService = DataOpsManager.getService() as TestDataOpsManagerImpl
 
         ussFileNode = spyk(
           UssFileNode(
@@ -160,25 +139,13 @@ class UssFileNodeTestSpec : WithApplicationShouldSpec({
         }
 
         var isOnSyncSuccessTriggered = false
-        var isNavigatePerformed = false
-        mockkStatic(FileNavigator::getInstance)
-        every { FileNavigator.getInstance() } answers {
+        mockkStatic(::runInEdtAndWait)
+        every { runInEdtAndWait(any()) } answers {
           isOnSyncSuccessTriggered = true
-          object : FileNavigator {
-            override fun navigate(descriptor: OpenFileDescriptor, requestFocus: Boolean) {
-              isNavigatePerformed = true
-              return
-            }
-
-            override fun navigateInEditor(descriptor: OpenFileDescriptor, requestFocus: Boolean): Boolean {
-              return true
-            }
-          }
         }
 
         ussFileNode.navigate(requestFocus)
         assertSoftly { isSyncWithRemotePerformed shouldBe true }
-        assertSoftly { isNavigatePerformed shouldBe true }
         assertSoftly { isOnSyncSuccessTriggered shouldBe true }
       }
       should("perform navigate on file with failure due to permission denied") {
@@ -196,11 +163,19 @@ class UssFileNodeTestSpec : WithApplicationShouldSpec({
         }
 
         var isDefaultOnThrowableHandlerTriggered = false
-        mockkObject(DocumentedSyncProvider)
-        every { DocumentedSyncProvider.defaultOnThrowableHandler(any(), any()) } answers {
-          val throwed = secondArg() as Throwable
-          assertSoftly { throwed.message shouldContain "Permission denied." }
-          isDefaultOnThrowableHandlerTriggered = true
+        val notificationsService = NotificationsService.getService() as TestNotificationsServiceImpl
+
+        notificationsService.testInstance = object : TestNotificationsServiceImpl() {
+          override fun notifyError(
+            t: Throwable,
+            project: Project?,
+            custTitle: String?,
+            custDetailsShort: String?,
+            custDetailsLong: String?
+          ) {
+            assertSoftly { t.message shouldContain "Permission denied." }
+            isDefaultOnThrowableHandlerTriggered = true
+          }
         }
 
         ussFileNode.navigate(requestFocus)
@@ -245,18 +220,9 @@ class UssFileNodeTestSpec : WithApplicationShouldSpec({
         }
 
         var isNavigateContinued = false
-        mockkStatic(FileNavigator::getInstance)
-        every { FileNavigator.getInstance() } answers {
-          object : FileNavigator {
-            override fun navigate(descriptor: OpenFileDescriptor, requestFocus: Boolean) {
-              isNavigateContinued = true
-              return
-            }
-
-            override fun navigateInEditor(descriptor: OpenFileDescriptor, requestFocus: Boolean): Boolean {
-              return true
-            }
-          }
+        mockkStatic(::runInEdtAndWait)
+        every { runInEdtAndWait(any()) } answers {
+          isNavigateContinued = true
         }
 
         ussFileNode.navigate(requestFocus)
@@ -266,18 +232,9 @@ class UssFileNodeTestSpec : WithApplicationShouldSpec({
         every { fileMock.isDirectory } returns true
 
         var isNavigateContinued = false
-        mockkStatic(FileNavigator::getInstance)
-        every { FileNavigator.getInstance() } answers {
-          object : FileNavigator {
-            override fun navigate(descriptor: OpenFileDescriptor, requestFocus: Boolean) {
-              isNavigateContinued = true
-              return
-            }
-
-            override fun navigateInEditor(descriptor: OpenFileDescriptor, requestFocus: Boolean): Boolean {
-              return true
-            }
-          }
+        mockkStatic(::runInEdtAndWait)
+        every { runInEdtAndWait(any()) } answers {
+          isNavigateContinued = true
         }
 
         ussFileNode.navigate(requestFocus)
@@ -331,37 +288,23 @@ class UssFileNodeTestSpec : WithApplicationShouldSpec({
         }
 
         var isOnSyncSuccessTriggered = false
-        var isNavigatePerformed = false
-        mockkStatic(FileNavigator::getInstance)
-        every { FileNavigator.getInstance() } answers {
+        mockkStatic(::runInEdtAndWait)
+        every { runInEdtAndWait(any()) } answers {
           isOnSyncSuccessTriggered = true
-          object : FileNavigator {
-            override fun navigate(descriptor: OpenFileDescriptor, requestFocus: Boolean) {
-              isNavigatePerformed = true
-              return
-            }
-
-            override fun navigateInEditor(descriptor: OpenFileDescriptor, requestFocus: Boolean): Boolean {
-              return true
-            }
-          }
         }
 
+        var isOpenFileCalled = false
+        val fileEditorManager = mockk<FileEditorManager>()
+        every { fileEditorManager.openFile(any<VirtualFile>(), any<Boolean>()) } answers {
+          isOpenFileCalled = true
+          arrayOf()
+        }
         every { fileMock.isBeingEditingNow() } returns true
         mockkStatic(FileEditorManager::getInstance)
-        var isOpenFileCalled = false
-        every {
-          FileEditorManager.getInstance(any())
-        } returns object : TestFileEditorManager() {
-          override fun openFile(file: VirtualFile, focusEditor: Boolean): Array<FileEditor> {
-            isOpenFileCalled = true
-            return arrayOf()
-          }
-        }
+        every { FileEditorManager.getInstance(any()) } returns fileEditorManager
 
         ussFileNode.navigate(requestFocus)
         assertSoftly { isSyncWithRemotePerformed shouldBe false }
-        assertSoftly { isNavigatePerformed shouldBe false }
         assertSoftly { isOnSyncSuccessTriggered shouldBe false }
         assertSoftly { isOpenFileCalled shouldBe true }
       }
@@ -369,18 +312,9 @@ class UssFileNodeTestSpec : WithApplicationShouldSpec({
         every { checkFileForSync(any(), any(), any()) } returns true
 
         var isNavigateContinued = false
-        mockkStatic(FileNavigator::getInstance)
-        every { FileNavigator.getInstance() } answers {
-          object : FileNavigator {
-            override fun navigate(descriptor: OpenFileDescriptor, requestFocus: Boolean) {
-              isNavigateContinued = true
-              return
-            }
-
-            override fun navigateInEditor(descriptor: OpenFileDescriptor, requestFocus: Boolean): Boolean {
-              return true
-            }
-          }
+        mockkStatic(::runInEdtAndWait)
+        every { runInEdtAndWait(any()) } answers {
+          isNavigateContinued = true
         }
 
         ussFileNode.navigate(requestFocus)
@@ -410,8 +344,7 @@ class UssFileNodeTestSpec : WithApplicationShouldSpec({
       every { treeStructure.registerNode(any()) } just Runs
 
       val explorerContentProviderMock = mockk<FileExplorerContentProvider>()
-      val uiComponentManagerService: TestUIComponentManager =
-        ApplicationManager.getApplication().service<UIComponentManager>() as TestUIComponentManager
+      val uiComponentManagerService: TestUIComponentManager = UIComponentManager.getService() as TestUIComponentManager
       uiComponentManagerService.testInstance = object : TestUIComponentManager() {
         override fun <E : Explorer<*, *>> getExplorer(clazz: Class<out E>): E {
           return explorer as E

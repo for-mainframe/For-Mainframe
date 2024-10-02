@@ -1,11 +1,15 @@
 /*
+ * Copyright (c) 2020-2024 IBA Group.
+ *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * https://www.eclipse.org/legal/epl-v20.html
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Copyright IBA Group 2020
+ * Contributors:
+ *   IBA Group
+ *   Zowe Community
  */
 
 package eu.ibagroup.formainframe.explorer
@@ -29,11 +33,6 @@ class ExplorerTestSpec : WithApplicationShouldSpec({
     should("get dataset properties") {}
     should("get dataset member properties") {}
     should("get USS file properties") {}
-  }
-  context("explorer module: actions/ForceRenameAction") {
-    // actionPerformed
-    should("perform force rename on USS file") {}
-    should("not rename dataset") {}
   }
   context("explorer module: actions/ChangeContentModeAction") {
     // isSelected

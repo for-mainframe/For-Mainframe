@@ -5,21 +5,53 @@ All notable changes to the Zowe IntelliJ Plugin will be documented in this file.
 ## [Unreleased]
 
 ### Features
-* Feature: Some test feature
+
+* Feature: Correct alignment for fields in working set dialog ([745143cc](https://github.com/zowe/zowe-explorer-intellij/commit/745143cc))
+
+### Bufixes
+
+* Bugfix: Fixed unexpected freezes of IDE during work with USS part ([38f1f5b3](https://github.com/zowe/zowe-explorer-intellij/commit/38f1f5b3))
+* Bugfix: Fixed error that was caused by members renaming ([238ebc08](https://github.com/zowe/zowe-explorer-intellij/commit/238ebc08))
+* Bugfix: Fixed missed automatic translation to uppercase ([1b48de61](https://github.com/zowe/zowe-explorer-intellij/commit/1b48de61))
+* Bugfix: Fixed synchronization errors ([f96d9302](https://github.com/zowe/zowe-explorer-intellij/commit/f96d9302))
+* Bugfix: Fixed permissions change in opened file ([b04ed99e](https://github.com/zowe/zowe-explorer-intellij/commit/b04ed99e))
+* Bugfix: Fixed copy-paste folder to another folder with name conflicts ([13d7d773](https://github.com/zowe/zowe-explorer-intellij/commit/13d7d773))
+* Bugfix: Validation changes for LRECL field ([14e384a4](https://github.com/zowe/zowe-explorer-intellij/commit/14e384a4))
+* Bugfix: Fixed issue when job was not visible in JesExplorerView when Job Filter is created by JOBID ([5bb17263](https://github.com/zowe/zowe-explorer-intellij/commit/5bb17263))
+* Bugfix: Fixed sync during indexing ([436c34a2](https://github.com/zowe/zowe-explorer-intellij/commit/436c34a2))
+
+## [1.2.2-231] (2024-08-21)
+
+### Features
+
+* Feature: Removed "openApiUtils" functions that were duplicating the ones already implemented in IntelliJ IDEA platform ([fbf7db62](https://github.com/zowe/zowe-explorer-intellij/commit/fbf7db62))
 
 ### Bugfixes
-* Bugfix: Some test bugfix
+
+* Bugfix: Fixed "/" and "/u" is not displayed correctly in USS Explorer ([547b9678](https://github.com/zowe/zowe-explorer-intellij/commit/547b9678))
+* Bugfix: "UTF-16" encoding is now either LE or BE available only ([f4b7e9de](https://github.com/zowe/zowe-explorer-intellij/commit/f4b7e9de))
+* Bugfix: The possibility to delete unrelated selected entities is disabled ([f7f9f019](https://github.com/zowe/zowe-explorer-intellij/commit/f7f9f019))
+* Bugfix: Fixed cross-system copy-paste for Sequential to PDS ([fb1943e3](https://github.com/zowe/zowe-explorer-intellij/commit/fb1943e3))
+* Bugfix: Fixed file permissions change is not reset after failure ([0ce02146](https://github.com/zowe/zowe-explorer-intellij/commit/0ce02146))
+* Bugfix: Fixed error notification displayed on uploading USS file ([b84c8beb](https://github.com/zowe/zowe-explorer-intellij/commit/b84c8beb))
+* Bugfix: Fixed colouring of entity when it was cut but the operation is changed to download ([3cdb982f](https://github.com/zowe/zowe-explorer-intellij/commit/3cdb982f))
+* Bugfix: Fixed folder copying when both parent and child directories are selected ([d8a44d98](https://github.com/zowe/zowe-explorer-intellij/commit/d8a44d98))
+* Bugfix: Fixed "Decide for Each -> Skip" option on Cut/Copy ([70089fcc](https://github.com/zowe/zowe-explorer-intellij/commit/70089fcc))
+* Bugfix: Fixed rename of datasets was saving names in lowercase in local cache ([18ebcee2](https://github.com/zowe/zowe-explorer-intellij/commit/18ebcee2))
+* Bugfix: Fixed downloading of USS files when there are conflicts on a local machine ([ccb48dda](https://github.com/zowe/zowe-explorer-intellij/commit/ccb48dda))
+* Bugfix: Fixed copying folder with contents not displaying the contents right after it is copied ([82c7b7a6](https://github.com/zowe/zowe-explorer-intellij/commit/82c7b7a6))
 
 ## [1.2.1-231] (2024-06-12)
 
 ### Features
-* Feature: GitHub issue #182 ([4631d76f](https://github.com/zowe/zowe-explorer-intellij/commit/4631d76f))
+
 * Feature: Change dialogs as DoNotAskOption is going to be removed soon ([0d6b5d57](https://github.com/zowe/zowe-explorer-intellij/commit/0d6b5d57))
 * Feature: Add 'Unknown' to fields in dataset properties dialog when there is no information for fields ([5b32a4df](https://github.com/zowe/zowe-explorer-intellij/commit/5b32a4df))
 * Feature: Validate owner when receiving information from TSO ([9db42fb8](https://github.com/zowe/zowe-explorer-intellij/commit/9db42fb8))
 * Feature: Conflicts dialog on copy/move improvement ([c8f4d525](https://github.com/zowe/zowe-explorer-intellij/commit/c8f4d525))
 
 ### Bugfixes
+
 * Bugfix: When all errors are corrected, the ok button is inactive ([4558495c](https://github.com/zowe/zowe-explorer-intellij/commit/4558495c))
 * Bugfix: Rename of the opened file causes exception ([09453311](https://github.com/zowe/zowe-explorer-intellij/commit/09453311))
 * Bugfix: Refresh does not work on the first try ([7af1c668](https://github.com/zowe/zowe-explorer-intellij/commit/7af1c668))
@@ -476,6 +508,8 @@ All notable changes to the Zowe IntelliJ Plugin will be documented in this file.
 * Bugfix: GitHub issue #85: The windows 'Add Working Set'/'Edit Working Set' are automatically resized if z/OSMF
   connection with very long name is added
 
+[1.2.2-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.1-231...1.2.2-231
+[1.2.1-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.0-231...1.2.1-231
 [1.2.0-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.1.2-231...1.2.0-231
 [1.1.2-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.1.1-231...1.1.2-231
 [1.1.1-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.1.0-231...1.1.1-231

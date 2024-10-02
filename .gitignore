@@ -1,6 +1,8 @@
 .gradle
 .idea
+.intellijPlatform
 /build
+/ide_for_launch
 
 verifier-all.jar
 

@@ -36,7 +36,7 @@ import eu.ibagroup.formainframe.testutils.WithApplicationShouldSpec
 import eu.ibagroup.formainframe.testutils.testServiceImpl.TestConfigServiceImpl
 import eu.ibagroup.formainframe.testutils.testServiceImpl.TestDataOpsManagerImpl
 import eu.ibagroup.formainframe.testutils.testServiceImpl.TestZosmfApiImpl
-import eu.ibagroup.formainframe.tso.TSOWindowFactory
+import eu.ibagroup.formainframe.tso.getTsoMessageQueue
 import eu.ibagroup.formainframe.utils.crudable.Crudable
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
@@ -259,8 +259,8 @@ class ConfigTestSpec : WithApplicationShouldSpec({
           }
         }
 
-        mockkObject(TSOWindowFactory)
-        every { TSOWindowFactory.getTsoMessageQueue(any()) } answers {
+        mockkStatic("eu.ibagroup.formainframe.tso.TSOWindowFactoryKt")
+        every { getTsoMessageQueue(any()) } answers {
           TsoResponse(
             tsoData = listOf(
               TsoData(tsoPrompt = MessageType(""))

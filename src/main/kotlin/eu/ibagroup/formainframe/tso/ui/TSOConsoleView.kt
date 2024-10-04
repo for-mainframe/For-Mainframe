@@ -30,6 +30,7 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBEmptyBorder
 import eu.ibagroup.formainframe.common.isDebugModeEnabled
+import eu.ibagroup.formainframe.dataops.exceptions.CredentialsNotFoundForConnectionException
 import eu.ibagroup.formainframe.dataops.operations.MessageData
 import eu.ibagroup.formainframe.dataops.operations.MessageType
 import eu.ibagroup.formainframe.tso.SESSION_COMMAND_ENTERED
@@ -161,7 +162,9 @@ class TSOConsoleView(
     processHandler.addProcessListener(object : ProcessListener {
       override fun startNotified(event: ProcessEvent) {}
 
-      override fun processTerminated(event: ProcessEvent) {}
+      override fun processTerminated(event: ProcessEvent) {
+        reopenSessionButton.isEnabled = tsoSession.unresponsiveReason !is CredentialsNotFoundForConnectionException
+      }
 
       override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
         cancelCommandButton.isEnabled =

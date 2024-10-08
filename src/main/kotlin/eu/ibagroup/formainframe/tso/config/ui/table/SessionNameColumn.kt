@@ -15,13 +15,16 @@
 package eu.ibagroup.formainframe.tso.config.ui.table
 
 import com.intellij.util.ui.ColumnInfo
+import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.tso.config.ui.TSOSessionDialogState
 
 /**
  * Class represents a session name column in TSO session table model.
  * It extends ColumnInfo abstract class and overloads getter and setter methods as values for this column
  */
-class SessionNameColumn : ColumnInfo<TSOSessionDialogState, String>("Session Name") {
+class SessionNameColumn : ColumnInfo<TSOSessionDialogState, String>(
+  message("configurable.tso.table.session")
+) {
 
   /**
    * Overloaded getter method of ColumnInfo abstract class
@@ -36,4 +39,9 @@ class SessionNameColumn : ColumnInfo<TSOSessionDialogState, String>("Session Nam
   override fun setValue(item: TSOSessionDialogState, value: String) {
     item.name = value
   }
+
+  override fun getTooltipText(): String {
+    return message("configurable.tso.table.session.tooltip")
+  }
 }
+

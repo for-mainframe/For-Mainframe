@@ -36,7 +36,7 @@ import eu.ibagroup.formainframe.utils.toMutableList
 abstract class AbstractWsTableModel<Connection : ConnectionConfigBase, WSConfig : WorkingSetConfig>(
   crudable: Crudable,
   connectionClass: Class<out Connection>,
-  connectionColumnName: String = message("configurable.ws.tables.ws.url.name")
+  connectionColumnName: String = message("configurable.ws.table.url.name")
 ) : CrudableTableModel<WSConfig>(crudable) {
 
   init {

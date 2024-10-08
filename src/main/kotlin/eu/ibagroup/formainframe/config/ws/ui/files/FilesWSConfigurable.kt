@@ -15,6 +15,7 @@
 package eu.ibagroup.formainframe.config.ws.ui.files
 
 import com.intellij.util.containers.toMutableSmartList
+import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.common.ui.DialogMode
 import eu.ibagroup.formainframe.config.ConfigSandbox
 import eu.ibagroup.formainframe.config.ws.FilesWorkingSetConfig
@@ -27,8 +28,9 @@ import eu.ibagroup.formainframe.utils.crudable.Crudable
 /**
  * Implementation of [AbstractWsConfigurable] class for modifying Files Working Set configurations.
  */
-class FilesWSConfigurable :
-  AbstractWsConfigurable<FilesWorkingSetConfig, WSTableModel, FilesWorkingSetDialogState>("Working Sets") {
+class FilesWSConfigurable : AbstractWsConfigurable<FilesWorkingSetConfig, WSTableModel, FilesWorkingSetDialogState>(
+  message("configurable.ws.title")
+) {
   override val wsConfigClass = FilesWorkingSetConfig::class.java
   override val wsTableModel = WSTableModel(ConfigSandbox.getService().crudable)
 

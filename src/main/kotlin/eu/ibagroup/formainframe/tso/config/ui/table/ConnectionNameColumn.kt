@@ -15,6 +15,7 @@
 package eu.ibagroup.formainframe.tso.config.ui.table
 
 import com.intellij.util.ui.ColumnInfo
+import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.config.connect.ConnectionConfig
 import eu.ibagroup.formainframe.tso.config.ui.TSOSessionDialogState
 import eu.ibagroup.formainframe.utils.crudable.Crudable
@@ -27,7 +28,9 @@ import eu.ibagroup.formainframe.utils.crudable.getByUniqueKey
  */
 class ConnectionNameColumn(
   private val crudable: Crudable
-) : ColumnInfo<TSOSessionDialogState, String>("Connection Name") {
+) : ColumnInfo<TSOSessionDialogState, String>(
+  message("configurable.tso.table.connection")
+) {
 
   /**
    * Overloaded getter method of ColumnInfo abstract class
@@ -45,4 +48,8 @@ class ConnectionNameColumn(
     }
   }
 
+  override fun getTooltipText(): String {
+    return message("configurable.tso.table.connection.tooltip")
+  }
 }
+

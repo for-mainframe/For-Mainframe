@@ -15,13 +15,15 @@
 package eu.ibagroup.formainframe.config.connect.ui
 
 import com.intellij.util.ui.ColumnInfo
+import eu.ibagroup.formainframe.common.message
 
 /**
  * Class represents a connection name column in connection table model.
  * It extends ColumnInfo abstract class and overloads getter and setter methods as values for this column
  */
-class ConnectionNameColumn<ConnectionState : ConnectionDialogStateBase<*>>
-  : ColumnInfo<ConnectionState, String>("Name") {
+class ConnectionNameColumn<ConnectionState : ConnectionDialogStateBase<*>> : ColumnInfo<ConnectionState, String>(
+  message("configurable.connection.table.name")
+) {
 
   /**
    * overloaded getter method of ColumnInfo abstract class
@@ -37,4 +39,8 @@ class ConnectionNameColumn<ConnectionState : ConnectionDialogStateBase<*>>
     item.connectionName = value
   }
 
+  override fun getTooltipText(): String {
+    return message("configurable.connection.table.name.tooltip")
+  }
 }
+

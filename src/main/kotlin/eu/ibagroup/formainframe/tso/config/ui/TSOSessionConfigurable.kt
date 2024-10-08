@@ -17,6 +17,7 @@ package eu.ibagroup.formainframe.tso.config.ui
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.panel
+import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.common.ui.DEFAULT_ROW_HEIGHT
 import eu.ibagroup.formainframe.common.ui.DialogMode
 import eu.ibagroup.formainframe.common.ui.ValidatingTableView
@@ -54,7 +55,7 @@ class TSOSessionConfigurable : BoundSearchableConfigurable("TSO Sessions", "main
     addSandboxListener()
 
     return panel {
-      group("TSO Sessions", false) {
+      group(message("configurable.tso.title"), false) {
         row {
           tableWithToolbar(table) {
             configureDecorator {

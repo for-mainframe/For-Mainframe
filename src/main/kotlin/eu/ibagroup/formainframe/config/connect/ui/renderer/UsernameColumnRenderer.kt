@@ -45,7 +45,7 @@ class UsernameColumnRenderer : IconTableCellRenderer<String>() {
         AllIcons.General.Warning
       }
 
-      value == message("configurable.ws.tables.ws.username.error.empty") -> {
+      value == message("configurable.ws.table.username.error.empty") -> {
         AllIcons.General.Error
       }
 
@@ -84,7 +84,7 @@ class UsernameColumnRenderer : IconTableCellRenderer<String>() {
       }
 
       else -> {
-        message("configurable.ws.tables.ws.username.tooltip")
+        message("configurable.ws.table.username.tooltip")
       }
     }
     return this

@@ -15,6 +15,7 @@
 package eu.ibagroup.formainframe.config.ws.ui.jes
 
 import com.intellij.util.containers.toMutableSmartList
+import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.common.ui.DialogMode
 import eu.ibagroup.formainframe.config.ConfigSandbox
 import eu.ibagroup.formainframe.config.ws.JesWorkingSetConfig
@@ -27,9 +28,9 @@ import eu.ibagroup.formainframe.utils.crudable.Crudable
  * Implementation of AbstractWsConfigurable class for modifying JES Working Set configurations.
  * @see AbstractWsConfigurable
  */
-class JesWsConfigurable
-  : AbstractWsConfigurable<JesWorkingSetConfig, JesWsTableModel, JesWorkingSetDialogState>("JES Working Sets") {
-
+class JesWsConfigurable : AbstractWsConfigurable<JesWorkingSetConfig, JesWsTableModel, JesWorkingSetDialogState>(
+  message("configurable.ws.jes.title")
+) {
   override val wsConfigClass = JesWorkingSetConfig::class.java
   override val wsTableModel = JesWsTableModel(ConfigSandbox.getService().crudable)
 

@@ -51,7 +51,7 @@ fun <T : ExplorerTreeNode<*, *>> List<T>.performUnitsDeletionBasedOnSelection(
     if (this.filterIsInstance<JesWsNode>().isNotEmpty() && this.filterIsInstance<JesWsNode>().size != this.size)
       "Jes Working Set(s) and Jes Filter(s)"
     else unitTypes
-  
+
   if (showYesNoDialog(
       title = "Confirm $unitTypes Deletion",
       message = "Do you want to delete selected $unitTypes from config? Note: all data under it(them) will be untouched",

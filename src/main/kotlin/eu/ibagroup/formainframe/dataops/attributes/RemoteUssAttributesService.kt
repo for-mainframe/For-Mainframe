@@ -84,7 +84,8 @@ class RemoteUssAttributesService(
       gid = newAttributes.gid,
       groupId = newAttributes.groupId,
       modificationTime = newAttributes.modificationTime,
-      symlinkTarget = newAttributes.symlinkTarget
+      symlinkTarget = newAttributes.symlinkTarget,
+      charset = oldAttributes.charset
     )
   }
 

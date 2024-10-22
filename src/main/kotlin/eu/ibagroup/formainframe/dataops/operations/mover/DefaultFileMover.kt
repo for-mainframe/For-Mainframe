@@ -16,6 +16,7 @@ package eu.ibagroup.formainframe.dataops.operations.mover
 import com.intellij.openapi.progress.ProgressIndicator
 import eu.ibagroup.formainframe.config.connect.ConnectionConfig
 import eu.ibagroup.formainframe.dataops.DataOpsManager
+import eu.ibagroup.formainframe.dataops.attributes.RemoteUssAttributes
 import eu.ibagroup.formainframe.dataops.attributes.Requester
 import eu.ibagroup.formainframe.dataops.exceptions.CallException
 import eu.ibagroup.formainframe.dataops.operations.DeleteOperation
@@ -63,7 +64,8 @@ abstract class DefaultFileMover(protected val dataOpsManager: DataOpsManager) : 
       }.mapCatching {
         val operationMessage = if (operation.isMove) "move" else "copy"
         if (!it.isSuccessful) {
-          throw CallException(it, "Cannot $operationMessage ${operation.source.name} to ${operation.destination.name}")
+          val dst = if (operation.destinationAttributes is RemoteUssAttributes) operation.destinationAttributes.path else operation.destination.name
+          throw CallException(it, "Cannot $operationMessage ${operation.source.name} to $dst")
         } else {
           it
         }

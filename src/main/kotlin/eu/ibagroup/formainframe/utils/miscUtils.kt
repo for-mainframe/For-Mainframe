@@ -15,6 +15,8 @@
 package eu.ibagroup.formainframe.utils
 
 import com.google.gson.Gson
+import com.intellij.ide.projectView.PresentationData
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.containers.minimalElements
 import com.intellij.util.containers.toArray
 import eu.ibagroup.formainframe.config.ConfigDeclaration
@@ -26,8 +28,8 @@ import eu.ibagroup.formainframe.explorer.WorkingSet
 import eu.ibagroup.formainframe.explorer.ui.ExplorerTreeView
 import eu.ibagroup.formainframe.explorer.ui.ExplorerUnitTreeNodeBase
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReadWriteLock
@@ -334,11 +336,11 @@ fun String.removeTrailingSlashes(): String {
  * @return String representation of LocalDateTime in human-readable format
  */
 fun LocalDateTime.toHumanReadableFormat(): String {
-  return "$dayOfMonth ${month.name} ${
-    toLocalTime().truncatedTo(ChronoUnit.SECONDS).format(
-      DateTimeFormatter.ISO_LOCAL_TIME
-    )
-  }"
+  return DateTimeFormatter
+    .ofPattern("dd MMM HH:mm:ss", Locale.ENGLISH)
+    .withZone(ZoneId.systemDefault())
+    .format(this)
+    .uppercase(Locale.getDefault())
 }
 
 const val UNKNOWN_PARAM_VALUE = "<Unknown>"
@@ -354,4 +356,16 @@ fun getParamTextValueOrUnknown(param: Any?): String {
 /** Wrapper for init() method. It is necessary only for test purposes for now. */
 fun initialize(init: () -> Unit) {
   init()
+}
+
+/**
+ * Wrapper for [PresentationData.addText] to use in call chain
+ * @receiver [PresentationData] instance
+ * @param text text to append
+ * @param attributes text attributes
+ * @return [PresentationData] instance
+ * */
+fun PresentationData.append(text: String, attributes: SimpleTextAttributes): PresentationData {
+  this.addText(text, attributes)
+  return this
 }

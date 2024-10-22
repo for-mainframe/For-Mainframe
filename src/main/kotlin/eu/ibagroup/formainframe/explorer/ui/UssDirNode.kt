@@ -20,6 +20,7 @@ import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.IconUtil
+import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.config.connect.ConnectionConfig
 import eu.ibagroup.formainframe.config.ws.UssPath
 import eu.ibagroup.formainframe.dataops.DataOpsManager
@@ -30,6 +31,7 @@ import eu.ibagroup.formainframe.dataops.fetch.UssQuery
 import eu.ibagroup.formainframe.dataops.getAttributesService
 import eu.ibagroup.formainframe.dataops.sort.SortQueryKeys
 import eu.ibagroup.formainframe.explorer.FilesWorkingSet
+import eu.ibagroup.formainframe.utils.append
 import eu.ibagroup.formainframe.utils.clearAndMergeWith
 import eu.ibagroup.formainframe.vfs.MFVirtualFile
 
@@ -143,8 +145,31 @@ class UssDirNode(
     presentation.setIcon(icon)
     if (vFile != null) {
       updateNodeTitleUsingCutBuffer(text, presentation)
+      vFile?.let {
+        val attributes = attributesService.getAttributes(it)
+        presentation.tooltip = message(
+          "explorer.tree.uss.node.tooltip",
+          attributes?.owner ?: "NULL", attributes?.fileMode ?: "NULL"
+        )
+      }
+      fileFetchProvider.getRealQueryInstance(query)?.let {
+        fileFetchProvider.findCacheRefreshDateIfPresent(it)?.let { _ ->
+          fileFetchProvider.getCached(it)?.let { cached ->
+            if (cached.isNotEmpty()) {
+              presentation
+                .append(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+                .append(
+                  message("explorer.tree.uss.node.label.files", cached.count {
+                      file -> attributesService.getAttributes(file)?.path != value.path
+                  }),
+                  SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES
+                )
+            }
+          }
+        }
+      }
     } else {
-      presentation.addText(text, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+      presentation.append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     }
     if (isRootNode) {
       updateRefreshDateAndTime(presentation)

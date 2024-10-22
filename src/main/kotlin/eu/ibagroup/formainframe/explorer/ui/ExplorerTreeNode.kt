@@ -37,6 +37,7 @@ import eu.ibagroup.formainframe.dataops.content.synchronizer.SaveStrategy
 import eu.ibagroup.formainframe.dataops.content.synchronizer.checkFileForSync
 import eu.ibagroup.formainframe.explorer.Explorer
 import eu.ibagroup.formainframe.explorer.UIComponentManager
+import eu.ibagroup.formainframe.utils.append
 import eu.ibagroup.formainframe.utils.isBeingEditingNow
 import eu.ibagroup.formainframe.utils.runInEdtAndWait
 import eu.ibagroup.formainframe.vfs.MFVirtualFile
@@ -100,7 +101,7 @@ abstract class ExplorerTreeNode<Connection : ConnectionConfigBase, Value : Any>(
     } else {
       SimpleTextAttributes.REGULAR_ATTRIBUTES
     }
-    presentationData.addText(text, textAttributes)
+    presentationData.append(text, textAttributes)
   }
 
   override fun navigate(requestFocus: Boolean) {

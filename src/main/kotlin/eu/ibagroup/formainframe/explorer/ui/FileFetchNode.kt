@@ -30,9 +30,7 @@ import eu.ibagroup.formainframe.dataops.Query
 import eu.ibagroup.formainframe.dataops.attributes.RemoteDatasetAttributes
 import eu.ibagroup.formainframe.dataops.fetch.LibraryQuery
 import eu.ibagroup.formainframe.explorer.ExplorerUnit
-import eu.ibagroup.formainframe.utils.castOrNull
-import eu.ibagroup.formainframe.utils.locked
-import eu.ibagroup.formainframe.utils.toHumanReadableFormat
+import eu.ibagroup.formainframe.utils.*
 import java.time.LocalDateTime
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -51,16 +49,12 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
   private val lock = ReentrantLock()
   private val condition = lock.newCondition()
 
-  private val connectionError = "Error: Check connection"
-  private val refreshLabel = "latest refresh:"
-  private val outOfSync: String = "Out of sync"
-
   @Volatile
   private var needsToShowPlus = true
 
   private var cachedChildren: List<AbstractTreeNode<*>>? by locked(null, lock)
 
-  private val fileFetchProvider
+  protected val fileFetchProvider
     get() = DataOpsManager.getService()
       .getFileFetchProvider(requestClass, queryClass, vFileClass)
 
@@ -182,7 +176,7 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
         } else {
           errorNode(
             if (unit.connectionConfig == null) {
-              connectionError
+              message("explorer.tree.node.label.error.connection")
             } else {
               q?.let { it1 -> fileFetchProvider.getFetchedErrorMessage(it1) } ?: message("title.error")
             }
@@ -221,12 +215,19 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
     if (q != null) {
       val lastKnownRefreshTime = fileFetchProvider.findCacheRefreshDateIfPresent(q)
       if (lastKnownRefreshTime != null) {
-        presentation.addText(
-          " $refreshLabel ${lastKnownRefreshTime.toHumanReadableFormat()}",
-          SimpleTextAttributes.GRAYED_ATTRIBUTES
-        )
+        presentation
+          .append(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+          .append(
+            message("explorer.tree.node.label.refreshed", lastKnownRefreshTime.toHumanReadableFormat()),
+            SimpleTextAttributes.GRAY_ATTRIBUTES
+          )
       }
-    } else presentation.addText(" $outOfSync", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+    } else presentation
+      .append(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+      .append(
+        message("explorer.tree.node.label.outOfSync"),
+        SimpleTextAttributes.GRAYED_ATTRIBUTES
+      )
   }
 
   /**

@@ -14,12 +14,14 @@
 
 package eu.ibagroup.formainframe.utils
 
+import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.TaskInfo
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx
 import com.intellij.ui.CollectionComboBoxModel
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBTextField
 import eu.ibagroup.formainframe.config.ConfigStateV2
 import eu.ibagroup.formainframe.config.connect.ConnectionConfig
@@ -924,7 +926,7 @@ class UtilsTestSpec : ShouldSpec({
     should("return a human readable date format given valid LocalDateTime instance") {
       //given
       val actualLocalDate = LocalDateTime.of(2023, 12, 30, 10, 0, 0)
-      val expectedString = "30 DECEMBER 10:00:00"
+      val expectedString = "30 DEC 10:00:00"
       //when
       val actualString = actualLocalDate.toHumanReadableFormat()
       //then
@@ -982,6 +984,16 @@ class UtilsTestSpec : ShouldSpec({
       //then
       assertSoftly {
         receiver shouldContainExactly expectedList
+      }
+    }
+
+    should("return updated PresentationData") {
+      val presentationData = PresentationData()
+
+      presentationData.append("text", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+
+      assertSoftly {
+        presentationData.coloredText.size shouldBe 1
       }
     }
   }

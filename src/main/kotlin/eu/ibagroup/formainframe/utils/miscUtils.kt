@@ -17,6 +17,7 @@ package eu.ibagroup.formainframe.utils
 import com.google.gson.Gson
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.icons.AllIcons
 import com.intellij.util.containers.minimalElements
 import com.intellij.util.containers.toArray
 import eu.ibagroup.formainframe.config.ConfigDeclaration
@@ -27,6 +28,7 @@ import eu.ibagroup.formainframe.dataops.sort.typedSortKeys
 import eu.ibagroup.formainframe.explorer.WorkingSet
 import eu.ibagroup.formainframe.explorer.ui.ExplorerTreeView
 import eu.ibagroup.formainframe.explorer.ui.ExplorerUnitTreeNodeBase
+import java.awt.Dimension
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -35,6 +37,7 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReadWriteLock
 import java.util.stream.Stream
 import java.util.stream.StreamSupport
+import javax.swing.JButton
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
@@ -368,4 +371,19 @@ fun initialize(init: () -> Unit) {
 fun PresentationData.append(text: String, attributes: SimpleTextAttributes): PresentationData {
   this.addText(text, attributes)
   return this
+}
+
+/**
+ * Method which creates JButton with required formatting for dialog windows.
+ * @return formatted JButton object
+ */
+fun createHelpButton(): JButton {
+  val helpButton = JButton(AllIcons.General.ContextHelp)
+  helpButton.preferredSize = Dimension(20, 20)
+  helpButton.minimumSize = Dimension(20, 20)
+  helpButton.maximumSize = Dimension(20, 20)
+  helpButton.isFocusPainted = false
+  helpButton.isBorderPainted = false
+  helpButton.isContentAreaFilled = false
+  return helpButton
 }

@@ -20,7 +20,7 @@ build-job:
       unzip "$ZIP_NAME_WITH_EXT" -d content
       mv content/* ../../built-plugin
   artifacts:
-    name: "for-mainframe-private"
+    name: "${CI_PROJECT_NAME}_${CI_COMMIT_REF_SLUG}_${CI_PIPELINE_ID}"
     paths:
       - built-plugin/
     expire_in: 4 weeks

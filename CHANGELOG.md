@@ -4,6 +4,8 @@ All notable changes to the Zowe IntelliJ Plugin will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0] (2024-10-03)
+
 ### Features
 
 * Feature: GitHub issue #119: Space units are clarified with a hint ([451f3528](https://github.com/zowe/zowe-explorer-intellij/commit/451f3528))
@@ -535,6 +537,7 @@ All notable changes to the Zowe IntelliJ Plugin will be documented in this file.
 * Bugfix: GitHub issue #85: The windows 'Add Working Set'/'Edit Working Set' are automatically resized if z/OSMF
   connection with very long name is added
 
+[2.0.0]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.2-231...2.0.0
 [1.2.2-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.1-231...1.2.2-231
 [1.2.1-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.0-231...1.2.1-231
 [1.2.0-231]: https://github.com/for-mainframe/For-Mainframe/compare/1.1.2-231...1.2.0-231

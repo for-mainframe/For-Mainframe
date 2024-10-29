@@ -48,6 +48,9 @@ import javax.swing.tree.TreeNode
 val JOBS_LOG_VIEW = DataKey.create<JobBuildTreeView>("jobsLogView")
 const val JOBS_LOG_NOTIFICATION_GROUP_ID = "eu.ibagroup.formainframe.explorer.ExplorerNotificationGroup"
 
+const val SUCCESSFUL_JOB_COMPLETION_CODE = 0
+const val SUCCESSFUL_JOB_COMPLETION_CODE_WITH_WARNING = 4
+
 /**
  * Console with BuildTree for display job execution process and results.
  * @param jobLogInfo job process information necessary to get log and status.
@@ -144,7 +147,7 @@ class JobBuildTreeView(
       } else ReturnCode.ERROR
 
       jobLogger.fetchLog()
-      var finalLogFiles = jobLogger.logFetcher.getCachedLog()
+      val finalLogFiles = jobLogger.logFetcher.getCachedLog()
       if (finalLogFiles.count() != spoolFileToLogMap.count()) {
         onNextLog()
       }

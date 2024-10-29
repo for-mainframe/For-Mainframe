@@ -15,10 +15,6 @@
 package eu.ibagroup.formainframe.utils
 
 import com.ibm.mq.headers.CCSID
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationType
-import com.intellij.notification.Notifications
-import com.intellij.openapi.components.service
 import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.config.connect.ConnectionConfig
 import eu.ibagroup.formainframe.dataops.DataOpsManager
@@ -26,6 +22,7 @@ import eu.ibagroup.formainframe.dataops.attributes.RemoteUssAttributes
 import eu.ibagroup.formainframe.dataops.content.synchronizer.DEFAULT_BINARY_CHARSET
 import eu.ibagroup.formainframe.dataops.operations.uss.ChangeFileTagOperation
 import eu.ibagroup.formainframe.dataops.operations.uss.ChangeFileTagOperationParams
+import eu.ibagroup.formainframe.telemetry.NotificationCompatibleException
 import eu.ibagroup.formainframe.telemetry.NotificationsService
 import okhttp3.ResponseBody
 import okhttp3.internal.indexOfNonWhitespace
@@ -44,9 +41,11 @@ fun checkUssFileTag(attributes: RemoteUssAttributes) {
     if (getSupportedEncodings().contains(charset)) {
       attributes.charset = charset
     } else {
-      notifyError(
-        message("filetag.unsupported.encoding.error.title", charset),
-        message("filetag.unsupported.encoding.error.message", DEFAULT_BINARY_CHARSET.name())
+      NotificationsService.errorNotification(
+        NotificationCompatibleException(
+          message("filetag.unsupported.encoding.error.title", charset),
+          message("filetag.unsupported.encoding.error.message", DEFAULT_BINARY_CHARSET.name())
+        )
       )
       attributes.charset = DEFAULT_BINARY_CHARSET
     }
@@ -95,9 +94,10 @@ fun getUssFileTagCharset(attributes: RemoteUssAttributes): Charset? {
         runCatching {
           return Charset.forName(tagCharset)
         }.onFailure {
-          notifyError(
-            message("filetag.encoding.detection.error.title"),
-            message("filetag.encoding.detection.error.message", DEFAULT_BINARY_CHARSET.name()),
+          NotificationsService.errorNotification(
+            it,
+            custTitle = message("filetag.encoding.detection.error.title"),
+            custDetailsShort = message("filetag.encoding.detection.error.message", DEFAULT_BINARY_CHARSET.name()),
           )
         }
       }

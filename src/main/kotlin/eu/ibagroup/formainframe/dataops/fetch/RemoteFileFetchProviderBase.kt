@@ -15,7 +15,6 @@
 package eu.ibagroup.formainframe.dataops.fetch
 
 import com.intellij.ide.util.treeView.AbstractTreeNode
-import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.vfs.VirtualFile
@@ -24,6 +23,7 @@ import eu.ibagroup.formainframe.config.connect.ConnectionConfigBase
 import eu.ibagroup.formainframe.dataops.DataOpsManager
 import eu.ibagroup.formainframe.dataops.Query
 import eu.ibagroup.formainframe.dataops.RemoteQuery
+import eu.ibagroup.formainframe.dataops.UnitRemoteQueryImpl
 import eu.ibagroup.formainframe.dataops.exceptions.CallException
 import eu.ibagroup.formainframe.dataops.services.ErrorSeparatorService
 import eu.ibagroup.formainframe.utils.castOrNull
@@ -223,7 +223,8 @@ abstract class RemoteFileFetchProviderBase<Connection : ConnectionConfigBase, Re
           }
         }
 
-      refreshCacheOfCollidingQuery(query, files)
+      //TODO: the only known evidence to use refresh of colliding query is related to BatchedQuery
+      query.castOrNull(UnitRemoteQueryImpl::class.java) ?: refreshCacheOfCollidingQuery(query, files)
 
       cache[query] = files
       cacheState[query] = CacheState.FETCHED

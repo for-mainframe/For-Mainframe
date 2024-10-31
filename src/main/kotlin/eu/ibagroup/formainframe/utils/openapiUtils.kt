@@ -26,6 +26,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
+import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -34,6 +35,7 @@ import eu.ibagroup.formainframe.dataops.attributes.FileAttributes
 import eu.ibagroup.formainframe.dataops.attributes.RemoteDatasetAttributes
 import eu.ibagroup.formainframe.dataops.attributes.RemoteMemberAttributes
 import eu.ibagroup.formainframe.dataops.attributes.RemoteUssAttributes
+import eu.ibagroup.formainframe.dataops.content.service.SyncProcessService
 import org.jetbrains.annotations.Nls
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
@@ -174,6 +176,31 @@ inline fun <reified T> runTask(
       return task(indicator)
     }
   })
+}
+
+/**
+ * Run the specified task in the background with sync tracking
+ * @param title the title of the task to be shown in the progress
+ * @param project the optional project value to make the specific project handling
+ * @param cancellable the value to specify if the task is cancellable
+ * @param virtualFile the virtual file for sync tracking
+ * @param task the task to execute
+ */
+inline fun runBackgroundableSyncTask(
+  title: String,
+  project: Project? = null,
+  cancellable: Boolean = true,
+  virtualFile: VirtualFile? = null,
+  crossinline task: (indicator: ProgressIndicator) -> Unit
+) {
+  runBackgroundableTask(title, project, cancellable) { indicator ->
+    virtualFile?.let { SyncProcessService.getService().startFileSync(it, indicator) }
+    runCatching {
+      task(indicator)
+    }.also {
+      virtualFile?.let { SyncProcessService.getService().stopFileSync(it) }
+    }
+  }
 }
 
 fun runInEdtAndWait(runnable: () -> Unit) {

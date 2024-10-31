@@ -16,7 +16,6 @@ package eu.ibagroup.formainframe.explorer.ui
 
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeNode
-import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.SimpleTextAttributes
@@ -139,10 +138,11 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
           } else {
             if (possibleToFetch) {
               possibleToFetch = false
-              runBackgroundableTask(
+              runBackgroundableSyncTask(
                 title = makeFetchTaskTitle(q),
                 project = project,
-                cancellable = true
+                cancellable = true,
+                virtualFile = virtualFile
               ) {
                 var isMembersFetchOnInvalidDS = false
                 // This functionality is going to skip the fetch of dataset members

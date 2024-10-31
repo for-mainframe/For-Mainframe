@@ -17,7 +17,6 @@ package eu.ibagroup.formainframe.explorer.ui
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
@@ -1799,7 +1798,7 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
       }
 
       should("filter operations with files that are currently being synchronized") {
-        var filesToMoveTotal = 1
+        isPastePerformed = false
 
         every { mockedDataContext.getData(IS_DRAG_AND_DROP_KEY) } returns null
         every { mockedDataContext.getData(CommonDataKeys.PROJECT) } returns mockedProject
@@ -1821,7 +1820,7 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
             any<Project>()
           )
         } answers {
-          filesToMoveTotal = secondArg<Int>()
+          isPastePerformed = true
           this
         }
 
@@ -1830,7 +1829,7 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
         clearMocks(mockedExplorerPasteProvider)
 
         assertSoftly {
-          filesToMoveTotal shouldBe 0
+          isPastePerformed shouldBe false
         }
       }
 

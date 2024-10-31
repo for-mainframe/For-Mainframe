@@ -17,7 +17,7 @@ package eu.ibagroup.formainframe.explorer.actions
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.progress.runBackgroundableTask
+import com.intellij.openapi.progress.runModalTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import eu.ibagroup.formainframe.analytics.AnalyticsService
@@ -64,7 +64,7 @@ class RenameAction : AnAction() {
     newName: String,
     node: ExplorerTreeNode<*, *>
   ) {
-    runBackgroundableTask(
+    runModalTask(
       title = "Renaming $type ${file.name} to $newName",
       project = project,
       cancellable = true

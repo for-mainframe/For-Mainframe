@@ -533,7 +533,9 @@ class ExplorerPasteProvider : PasteProvider {
       excludedOperations.forEach { operation ->
         copyPasteSupport.removeFromBuffer { nodeData -> nodeData.file == operation.source }
       }
+
       val filesToMoveTotal = filteredOperations.size
+      if (filesToMoveTotal == 0) return
 
       runMoveOrCopyTask(
         titlePrefix,

@@ -20,7 +20,6 @@ import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.util.preferredWidth
 import eu.ibagroup.formainframe.common.ui.StatefulDialog
 import eu.ibagroup.formainframe.tso.config.TSOSessionConfig
 import eu.ibagroup.formainframe.utils.crudable.Crudable
@@ -60,7 +59,7 @@ class SelectTSOSessionDialog(
           .validationOnApply { validateTsoSessionSelection(it, crudable) }
           .align(AlignX.FILL)
           .applyToComponent {
-            preferredWidth = 200
+            preferredSize = Dimension(200, preferredSize.height)
           }
       }.resizableRow()
     }.apply {

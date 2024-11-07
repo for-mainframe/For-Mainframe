@@ -127,9 +127,7 @@ class ExplorerPasteProvider : PasteProvider {
     it.attributes?.isPastePossible ?: true
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.EDT
-  }
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   /**
    * Get nodes to refresh. Normally it would be some parent nodes that are changed during the copy/move operation.
@@ -162,13 +160,13 @@ class ExplorerPasteProvider : PasteProvider {
       .asSequence()
       .map { file -> explorerView.myFsTreeStructure.findByVirtualFile(file).reversed() }
       .flatten()
-      .distinct()
+      .distinctBy { it.path }
       .toList()
     return if (explorerView.isCut.get()) {
       val sourceNodesToRefresh = sourceFilesToRefresh
         .map { file -> explorerView.myFsTreeStructure.findByVirtualFile(file).reversed().map { it } }
         .flatten()
-        .distinct()
+        .distinctBy { it.path }
       mutableMapOf(Pair(SOURCES, sourceNodesToRefresh), Pair(DESTINATIONS, destinationNodesToRefresh))
     } else {
       mutableMapOf(Pair(DESTINATIONS, destinationNodesToRefresh))

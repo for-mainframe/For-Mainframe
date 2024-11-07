@@ -53,21 +53,14 @@ import eu.ibagroup.formainframe.vfs.MFVirtualFileSystem
 import eu.ibagroup.formainframe.vfs.MFVirtualFileSystemModel
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import io.mockk.Runs
-import io.mockk.clearAllMocks
-import io.mockk.clearMocks
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.mockkStatic
-import io.mockk.spyk
+import io.mockk.*
 import org.zowe.kotlinsdk.Dataset
 import org.zowe.kotlinsdk.DatasetOrganization
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.Icon
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.jvm.isAccessible
@@ -147,7 +140,9 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
         every { mockedFileExplorerView.myFsTreeStructure } returns mockk()
         every { mockedFileExplorerView.myStructure } returns mockk()
         every { nodeToRefreshSource.parent } returns nodeToRefreshSource
+        every { nodeToRefreshSource.path } returns mockk<TreePath>()
         every { nodeToRefreshTarget.parent } returns nodeToRefreshTarget
+        every { nodeToRefreshTarget.path } returns mockk<TreePath>()
         every { nodeToRefreshSource.virtualFile } returns mockedSourceVFile
         every { nodeToRefreshTarget.virtualFile } returns mockedDestinationVFile
         every { mockedSourceVFile.parent } returns sourceParentFile
@@ -485,8 +480,12 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
         every { mockedFileExplorerView.myFsTreeStructure.findByVirtualFile(any() as VirtualFile) } answers {
           isPastePerformed = true
           listOf(
-            mockk(),
-            mockk()
+            mockk {
+              every { path } returns mockk<TreePath>()
+            },
+            mockk {
+              every { path } returns mockk<TreePath>()
+            }
           )
         }
         every { nodeToRefreshSource.parent } answers {
@@ -530,6 +529,7 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
         every { mockedSourceFile.name } returns "test_file_source"
         every { mockedSourceNode.virtualFile } returns mockedSourceFile
         every { mockedSourceNode.parent } returns mockedSourceNodeParent
+        every { mockedSourceNode.path } returns mockk<TreePath>()
         every { mockedSourceFile.fileSystem } returns mockk<MFVirtualFileSystem>()
         every { mockedSourceFile.fileSystem.model } returns mockk<MFVirtualFileSystemModel>()
         every { mockedSourceFile.fileSystem.model.deleteFile(any(), any()) } just Runs
@@ -559,6 +559,7 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
         every { mockedTargetFile.children } returns arrayOf(childDestinationVirtualFile)
         every { mockedStructureTreeModelNodeTarget.userObject } returns mockedNodeTarget
         every { mockedNodeTarget.virtualFile } returns mockedTargetFile
+        every { mockedNodeTarget.path } returns mockk<TreePath>()
 
         // CopyPaste node buffer
         val copyPasteNodeData = mockk<NodeData<*>>()
@@ -654,6 +655,7 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
         every { mockedSourceFile.name } returns "test_file_source"
         every { mockedSourceNode.virtualFile } returns mockedSourceFile
         every { mockedSourceNode.parent } returns mockedSourceNodeParent
+        every { mockedSourceNode.path } returns mockk<TreePath>()
         every { mockedSourceFile.fileSystem } returns mockk<MFVirtualFileSystem>()
         every { mockedSourceFile.fileSystem.model } returns mockk<MFVirtualFileSystemModel>()
         every { mockedSourceFile.fileSystem.model.deleteFile(any(), any()) } just Runs
@@ -683,6 +685,7 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
         every { mockedTargetFile.children } returns arrayOf(childDestinationVirtualFile)
         every { mockedStructureTreeModelNodeTarget.userObject } returns mockedNodeTarget
         every { mockedNodeTarget.virtualFile } returns mockedTargetFile
+        every { mockedNodeTarget.path } returns mockk<TreePath>()
 
         // CopyPaste node buffer
         val copyPasteNodeData = mockk<NodeData<*>>()
@@ -775,6 +778,7 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
         val mockedSourceAttributes = mockk<RemoteDatasetAttributes>()
         every { mockedSourceNode.virtualFile } returns mockedSourceFile
         every { mockedSourceNode.parent } returns mockedSourceNodeParent
+        every { mockedSourceNode.path } returns mockk<TreePath>()
         every { mockedSourceFile.name } returns "TEST.FILE"
         every { mockedSourceFile.isInLocalFileSystem } returns false
         every { mockedSourceFile.fileSystem } returns mockk<MFVirtualFileSystem>()
@@ -803,6 +807,7 @@ class ExplorerPasteProviderTestSpec : WithApplicationShouldSpec({
         every { mockedTargetFile.children } returns arrayOf(childDestinationVirtualFile)
         every { mockedStructureTreeModelNodeTarget.userObject } returns mockedNodeTarget
         every { mockedNodeTarget.virtualFile } returns mockedTargetFile
+        every { mockedNodeTarget.path } returns mockk<TreePath>()
 
         // CopyPaste node buffer
         val copyPasteNodeData = mockk<NodeData<*>>()

@@ -137,9 +137,9 @@ data class RemoteUssAttributes(
         fileMode?.all
       }
       return mode == FileModeValue.WRITE.mode
-          || mode == FileModeValue.WRITE_EXECUTE.mode
-          || mode == FileModeValue.READ_WRITE.mode
-          || mode == FileModeValue.READ_WRITE_EXECUTE.mode
+        || mode == FileModeValue.WRITE_EXECUTE.mode
+        || mode == FileModeValue.READ_WRITE.mode
+        || mode == FileModeValue.READ_WRITE_EXECUTE.mode
     }
 
   val isReadable: Boolean

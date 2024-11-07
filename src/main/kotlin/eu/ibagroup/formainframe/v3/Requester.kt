@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2024 IBA Group.
+ * Copyright (c) 2024 IBA Group.
  *
  * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
@@ -12,14 +12,12 @@
  *   Zowe Community
  */
 
-package eu.ibagroup.formainframe.dataops.attributes
-
-import eu.ibagroup.formainframe.config.connect.ConnectionConfigBase
+package eu.ibagroup.formainframe.v3
 
 /**
- * Interface that is necessary to implement requests to z/OSMF for specific entity (USS files, datasets, jobs etc.)
+ * Interface to track requests origins. Represents the elements that requested a related data
  * @property connectionConfig the related connection config
  */
-interface Requester<Connection : ConnectionConfigBase> {
-  val connectionConfig: Connection
+interface Requester<ConnectionConfigType : ConnectionConfig> {
+  val connectionConfig: ConnectionConfigType
 }

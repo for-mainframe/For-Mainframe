@@ -482,10 +482,14 @@ class FileExplorerView(
                   }
                 indicator.fraction += 1.0 / filteredFiles.size
               }
-            filteredNodeAndFilePairs.map { it.first }
-              .mapNotNull { it.node.parent }
+            filteredNodeAndFilePairs
+              .asSequence()
+              .map { myFsTreeStructure.findByVirtualFile(it.second) }
+              .flatten()
+              .mapNotNull { it.parent }
               .distinctBy { it.path }
               .filterIsInstance<FileFetchNode<*, *, *, *, *, *>>()
+              .toList()
               .forEach {
                 it.cleanCache(
                   recursively = it is UssDirNode,

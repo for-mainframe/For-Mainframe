@@ -85,7 +85,11 @@ class GetFilePropertiesAction : AnAction() {
             val initFileMode = attributes.fileMode?.clone()
             val dialog = UssFilePropertiesDialog(project, UssFileState(attributes, virtualFile.isBeingEditingNow()))
             if (dialog.showAndGet()) {
-              if (attributes.fileMode?.owner != initFileMode?.owner || attributes.fileMode?.group != initFileMode?.group || attributes.fileMode?.all != initFileMode?.all) {
+              if (
+                attributes.fileMode?.owner != initFileMode?.owner
+                || attributes.fileMode?.group != initFileMode?.group
+                || attributes.fileMode?.all != initFileMode?.all
+              ) {
                 runBackgroundableTask(
                   title = "Changing file mode on ${attributes.path}",
                   project = project,

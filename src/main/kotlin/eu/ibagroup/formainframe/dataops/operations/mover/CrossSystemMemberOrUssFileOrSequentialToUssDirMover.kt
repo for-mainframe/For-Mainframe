@@ -26,7 +26,10 @@ import eu.ibagroup.formainframe.dataops.exceptions.CallException
 import eu.ibagroup.formainframe.dataops.operations.DeleteOperation
 import eu.ibagroup.formainframe.dataops.operations.OperationRunner
 import eu.ibagroup.formainframe.dataops.operations.OperationRunnerFactory
-import eu.ibagroup.formainframe.utils.*
+import eu.ibagroup.formainframe.utils.applyIfNotNull
+import eu.ibagroup.formainframe.utils.cancelByIndicator
+import eu.ibagroup.formainframe.utils.log
+import eu.ibagroup.formainframe.utils.setUssFileTag
 import eu.ibagroup.formainframe.vfs.MFVirtualFile
 import org.zowe.kotlinsdk.DataAPI
 import org.zowe.kotlinsdk.FilePath
@@ -54,15 +57,16 @@ class CrossSystemMemberOrUssFileOrSequentialToUssDirMover(val dataOpsManager: Da
    * @see OperationRunner.canRun
    */
   override fun canRun(operation: MoveCopyOperation): Boolean {
-    return !operation.source.isDirectory &&
-      operation.destination.isDirectory &&
+    return !operation.source.isDirectory
+      && operation.destination.isDirectory
+      &&
       (operation.sourceAttributes is RemoteMemberAttributes
-          || operation.sourceAttributes is RemoteUssAttributes
-          || operation.sourceAttributes is RemoteDatasetAttributes) &&
-      operation.destinationAttributes is RemoteUssAttributes &&
-      operation.source is MFVirtualFile &&
-      operation.destination is MFVirtualFile &&
-      operation.commonUrls(dataOpsManager).isEmpty()
+        || operation.sourceAttributes is RemoteUssAttributes
+        || operation.sourceAttributes is RemoteDatasetAttributes)
+      && operation.destinationAttributes is RemoteUssAttributes
+      && operation.source is MFVirtualFile
+      && operation.destination is MFVirtualFile
+      && operation.commonUrls(dataOpsManager).isEmpty()
   }
 
   override val log = log<CrossSystemMemberOrUssFileOrSequentialToUssDirMover>()

@@ -102,6 +102,10 @@ Example of how to see the output:<br/>
 
         <extensionPoint name="nameResolver"
                         interface="eu.ibagroup.formainframe.dataops.operations.mover.names.CopyPasteNameResolverFactory"/>
+
+        <extensionPoint name="operationRunnerV3"
+                        interface="eu.ibagroup.formainframe.v3.operations.OperationRunner"
+                        dynamic="true"/>
     </extensionPoints>
 
     <applicationListeners>
@@ -275,6 +279,8 @@ Example of how to see the output:<br/>
 
         <operationRunner
                 implementation="eu.ibagroup.formainframe.dataops.operations.uss.ChangeFileTagOperationRunnerFactory"/>
+
+        <operationRunnerV3 implementation="eu.ibagroup.formainframe.v3.operations.RenameOperationRunner"/>
 
         <logFetcher implementation="eu.ibagroup.formainframe.dataops.log.JobLogFetcherFactory"/>
 

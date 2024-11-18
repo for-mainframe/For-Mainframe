@@ -2,6 +2,8 @@
 
 All notable changes to the For Mainframe Plugin will be documented in this file.
 
+## [Unreleased]
+
 ## [1.2.4-221] (2024-11-18)
 
 ### Bugfixes

@@ -2,7 +2,7 @@
 
 All notable changes to the For Mainframe Plugin will be documented in this file.
 
-## [Unreleased]
+## [1.2.4-223] (2024-11-18)
 
 ### Bugfixes
 
@@ -15,7 +15,7 @@ All notable changes to the For Mainframe Plugin will be documented in this file.
 * Bugfix: Fixed issue during a file upload to a PDS ([954bf01f](https://github.com/zowe/zowe-explorer-intellij/commit/954bf01f))
 * Bugfix: Fixed issue with URL field when typing incorrect information, the last slash at the end of https:// is deleted ([91ab962d](https://github.com/zowe/zowe-explorer-intellij/commit/91ab962d))
 
-## [1.2.3-223] (2024-10-02)
+## [1.2.3-223] (2024-10-03)
 
 ### Features
 
@@ -514,6 +514,7 @@ All notable changes to the For Mainframe Plugin will be documented in this file.
 * Bugfix: GitHub issue #85: The windows 'Add Working Set'/'Edit Working Set' are automatically resized if z/OSMF
   connection with very long name is added
 
+[1.2.4-223]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.3-223...1.2.4-223
 [1.2.3-223]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.2-223...1.2.3-223
 [1.2.2-223]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.1-223...1.2.2-223
 [1.2.1-223]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.0-223...1.2.1-223

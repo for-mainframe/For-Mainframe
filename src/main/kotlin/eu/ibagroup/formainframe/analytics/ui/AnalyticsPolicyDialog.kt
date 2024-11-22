@@ -61,6 +61,7 @@ class AnalyticsPolicyDialog(
             lineWrap = true
             wrapStyleWord = true
             caretPosition = 0
+            isEditable = false
           }
         scrollCell(licenseTextArea)
           .horizontalAlign(HorizontalAlign.FILL)

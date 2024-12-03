@@ -5,6 +5,7 @@
 /ide_for_launch
 /out
 /allure-results
+**/mock_project/*
 
 libs
 verifier-all.jar

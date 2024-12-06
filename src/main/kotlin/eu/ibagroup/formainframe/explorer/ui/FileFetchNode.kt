@@ -29,8 +29,9 @@ import eu.ibagroup.formainframe.dataops.Query
 import eu.ibagroup.formainframe.dataops.attributes.RemoteDatasetAttributes
 import eu.ibagroup.formainframe.dataops.fetch.LibraryQuery
 import eu.ibagroup.formainframe.explorer.ExplorerUnit
-import eu.ibagroup.formainframe.utils.*
-import java.time.LocalDateTime
+import eu.ibagroup.formainframe.utils.castOrNull
+import eu.ibagroup.formainframe.utils.locked
+import eu.ibagroup.formainframe.utils.toHumanReadableFormat
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -160,12 +161,8 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
                   if (needToLoadMore) {
                     fileFetchProvider.loadMore(q, it)
                   } else {
-                    fileFetchProvider.apply {
-                      reload(q, it)
-                      applyRefreshCacheDate(q, this@FileFetchNode, LocalDateTime.now())
-                    }
+                    fileFetchProvider.reload(q, it)
                   }
-
                 }
                 needToLoadMore = false
                 possibleToFetch = true

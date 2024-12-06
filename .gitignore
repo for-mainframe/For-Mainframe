@@ -1,5 +1,9 @@
 .gradle
-.idea
+**/.idea/*
+!/.idea/copyright/
+!/.idea/copyright/*
+!/.idea/runConfigurations/
+!/.idea/runConfigurations/*
 .intellijPlatform
 /build
 /ide_for_launch

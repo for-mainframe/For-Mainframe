@@ -17,7 +17,9 @@ package eu.ibagroup.formainframe.dataops
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ComponentManager
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import eu.ibagroup.formainframe.dataops.attributes.AttributesService
@@ -25,6 +27,7 @@ import eu.ibagroup.formainframe.dataops.attributes.FileAttributes
 import eu.ibagroup.formainframe.dataops.content.adapters.DefaultContentAdapter
 import eu.ibagroup.formainframe.dataops.content.adapters.MFContentAdapter
 import eu.ibagroup.formainframe.dataops.content.synchronizer.ContentSynchronizer
+import eu.ibagroup.formainframe.dataops.content.synchronizer.checkForSync
 import eu.ibagroup.formainframe.dataops.fetch.FileFetchProvider
 import eu.ibagroup.formainframe.dataops.log.AbstractMFLoggerBase
 import eu.ibagroup.formainframe.dataops.log.LogFetcher
@@ -36,6 +39,8 @@ import eu.ibagroup.formainframe.dataops.operations.mover.names.DefaultNameResolv
 import eu.ibagroup.formainframe.utils.associateListedBy
 import eu.ibagroup.formainframe.utils.findAnyNullable
 import eu.ibagroup.formainframe.utils.log
+import eu.ibagroup.formainframe.utils.runInEdtAndWait
+import eu.ibagroup.formainframe.vfs.MFVirtualFile
 
 /**
  * Data operation manager implementation class.
@@ -168,6 +173,32 @@ class DataOpsManagerImpl : DataOpsManager {
    */
   override fun getContentSynchronizer(file: VirtualFile): ContentSynchronizer? {
     return contentSynchronizers.firstOrNull { it.accepts(file) }
+  }
+
+  /**
+   * Closes all [MFVirtualFile] files opened in the editor and clears the cache of all registered content synchronizers.
+   * @return true if the file cache is cleared and false otherwise.
+   */
+  override fun clearFileCache(): Boolean {
+    ProjectManager.getInstance().openProjects.forEach { project ->
+      val fileEditorManager = FileEditorManager.getInstance(project)
+      runInEdtAndWait {
+        fileEditorManager.openFiles.forEach {
+          if (it is MFVirtualFile) {
+            fileEditorManager.closeFile(it)
+          }
+        }
+      }
+    }
+    var syncInProgress = false
+    runInEdtAndWait {
+      syncInProgress = checkForSync()
+    }
+    if (!syncInProgress) {
+      contentSynchronizers.forEach { it.clearFileCache() }
+      return true
+    }
+    return false
   }
 
   /**

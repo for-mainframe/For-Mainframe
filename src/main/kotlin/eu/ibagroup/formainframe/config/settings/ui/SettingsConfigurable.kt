@@ -17,7 +17,9 @@ package eu.ibagroup.formainframe.config.settings.ui
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.observable.util.whenTextChanged
 import com.intellij.openapi.options.BoundSearchableConfigurable
+import com.intellij.openapi.progress.runModalTask
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.openapi.ui.Messages
 import com.intellij.ui.dsl.builder.bindIntText
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
@@ -25,6 +27,7 @@ import eu.ibagroup.formainframe.analytics.AnalyticsService
 import eu.ibagroup.formainframe.analytics.PolicyProvider
 import eu.ibagroup.formainframe.analytics.ui.AnalyticsPolicyDialog
 import eu.ibagroup.formainframe.config.ConfigService
+import eu.ibagroup.formainframe.dataops.DataOpsManager
 import eu.ibagroup.formainframe.rateus.RateUsNotification
 import eu.ibagroup.formainframe.utils.validateBatchSize
 import java.util.concurrent.atomic.AtomicBoolean
@@ -86,6 +89,22 @@ class SettingsConfigurable : BoundSearchableConfigurable("Settings", "mainframe"
             .also { res ->
               res.component.addItemListener { isAutoSyncEnabled.set(res.component.isSelected) }
             }
+        }
+        row {
+          button("Clear File Cache") {
+            var cacheCleared = false
+            runModalTask("Cache Clearing", cancellable = false) {
+              cacheCleared = DataOpsManager.getService().clearFileCache()
+            }
+            if (cacheCleared) {
+              Messages.showInfoMessage(
+                "The file cache has been successfully cleared.",
+                "Cache Cleared",
+              )
+            }
+          }.applyToComponent {
+            toolTipText = "Clear the local contents of files downloaded from the remote system. All related files opened in the editor will be closed"
+          }
         }
       }
       group("Rate Us") {

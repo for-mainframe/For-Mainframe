@@ -20,6 +20,9 @@ import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.progress.runModalTask
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.ui.validation.DialogValidation
+import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.bindIntText
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
@@ -30,6 +33,7 @@ import eu.ibagroup.formainframe.config.ConfigService
 import eu.ibagroup.formainframe.dataops.DataOpsManager
 import eu.ibagroup.formainframe.rateus.RateUsNotification
 import eu.ibagroup.formainframe.utils.validateBatchSize
+import eu.ibagroup.formainframe.utils.validateJobReturnCode
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.JLabel
@@ -47,7 +51,15 @@ class SettingsConfigurable : BoundSearchableConfigurable("Settings", "mainframe"
   private var isAutoSyncEnabledInitial = AtomicBoolean(isAutoSyncEnabled.get())
 
   private var batchSize = AtomicInteger(configService.batchSize)
+  private var successMaxCode = AtomicInteger(configService.successMaxCode)
+  private var warningMaxCode = AtomicInteger(configService.warningMaxCode)
   private var batchSizeInitial = AtomicInteger(batchSize.get())
+  private var successMaxCodeInitial = AtomicInteger(successMaxCode.get())
+  private var warningMaxCodeInitial = AtomicInteger(warningMaxCode.get())
+  private var isReturnCodesValid = true
+
+  private lateinit var successField: JBTextField
+  private lateinit var warningField: JBTextField
 
   /**
    * Check whether user is agreed or disagreed on analytics process
@@ -64,6 +76,26 @@ class SettingsConfigurable : BoundSearchableConfigurable("Settings", "mainframe"
 
   /** Settings panel description */
   override fun createPanel(): DialogPanel {
+
+    class ValidateJobReturnCode(
+      var components: List<JBTextField>
+    ) : DialogValidation {
+      override fun validate(): ValidationInfo? {
+        panel?.validateAll()
+        var validationInfo: ValidationInfo?
+        components.forEach { component ->
+          validationInfo =
+            validateJobReturnCode(successField, successMaxCodeInitial, warningField, warningMaxCodeInitial, component)
+          if (validationInfo != null) {
+            isReturnCodesValid = false
+            return validationInfo
+          }
+        }
+        isReturnCodesValid = true
+        return null
+      }
+    }
+
     return panel {
       group("Analytics") {
         row {
@@ -75,6 +107,39 @@ class SettingsConfigurable : BoundSearchableConfigurable("Settings", "mainframe"
             .also { agreementLabelComponent = it.component }
         }
       }
+
+      group("JES Explorer") {
+        row {
+          label("Max RC to consider as success")
+          intTextField(IntRange(0, Int.MAX_VALUE))
+            .bindIntText({ successMaxCode.get() }, { successMaxCode.set(it) })
+            .also { successField = it.component }
+            .also { cell ->
+              cell.component.whenTextChanged {
+                successMaxCode.set(
+                  cell.component.text.toIntOrNull() ?: 0
+                )
+              }
+            }
+        }
+        row {
+          label("Max RC to consider as warning")
+          intTextField(IntRange(0, Int.MAX_VALUE))
+            .bindIntText({ warningMaxCode.get() }, { warningMaxCode.set(it) })
+            .also { warningField = it.component }
+            .also { cell ->
+              cell.component.whenTextChanged {
+                warningMaxCode.set(
+                  cell.component.text.toIntOrNull() ?: 7
+                )
+              }
+            }
+        }
+        row {
+          label("Other RC value will be considered as an error")
+        }
+      }
+
       group("Other Settings") {
         row {
           label("Batch amount to show per fetch")
@@ -103,7 +168,8 @@ class SettingsConfigurable : BoundSearchableConfigurable("Settings", "mainframe"
               )
             }
           }.applyToComponent {
-            toolTipText = "Clear the local contents of files downloaded from the remote system. All related files opened in the editor will be closed"
+            toolTipText =
+              "Clear the local contents of files downloaded from the remote system. All related files opened in the editor will be closed"
           }
         }
       }
@@ -118,6 +184,12 @@ class SettingsConfigurable : BoundSearchableConfigurable("Settings", "mainframe"
         }
       }
     }
+      .apply {
+        validationsOnInput = mapOf(
+          successField to listOf(ValidateJobReturnCode(listOf(successField, warningField))),
+          warningField to listOf(ValidateJobReturnCode(listOf(warningField, successField)))
+        )
+      }
       .also { panel = it }
   }
 
@@ -128,6 +200,15 @@ class SettingsConfigurable : BoundSearchableConfigurable("Settings", "mainframe"
 
     configService.batchSize = batchSizeInitial.get()
     batchSize.set(batchSizeInitial.get())
+
+    configService.successMaxCode = successMaxCodeInitial.get()
+    successMaxCode.set(successMaxCodeInitial.get())
+
+    configService.warningMaxCode = warningMaxCodeInitial.get()
+    warningMaxCode.set(warningMaxCodeInitial.get())
+
+    super.reset()
+    panel?.updateUI()
   }
 
   /** Apply all the changes */
@@ -137,16 +218,30 @@ class SettingsConfigurable : BoundSearchableConfigurable("Settings", "mainframe"
 
     configService.batchSize = batchSize.get()
     batchSizeInitial.set(batchSize.get())
+
+    if (isReturnCodesValid) {
+      configService.successMaxCode = successMaxCode.get()
+      successMaxCodeInitial.set(successMaxCode.get())
+
+      configService.warningMaxCode = warningMaxCode.get()
+      warningMaxCodeInitial.set(warningMaxCode.get())
+    }
   }
 
   /** Check is the changes were made */
   override fun isModified(): Boolean {
-    return configService.isAutoSyncEnabled != isAutoSyncEnabled.get() || configService.batchSize != batchSize.get()
+    return (configService.isAutoSyncEnabled != isAutoSyncEnabled.get()
+      || configService.batchSize != batchSize.get()
+      || configService.successMaxCode != successMaxCode.get()
+      || configService.warningMaxCode != warningMaxCode.get())
+      && isReturnCodesValid
   }
 
   /** Cancel all the changes */
   override fun cancel() {
     isAutoSyncEnabled.set(configService.isAutoSyncEnabled)
     batchSize.set(configService.batchSize)
+    successMaxCode.set(configService.successMaxCode)
+    warningMaxCode.set(configService.warningMaxCode)
   }
 }

@@ -29,8 +29,10 @@ import eu.ibagroup.formainframe.utils.castOrNull
 import eu.ibagroup.formainframe.utils.runIfTrue
 import eu.ibagroup.formainframe.utils.runWriteActionInEdtAndWait
 import eu.ibagroup.formainframe.utils.sendTopic
+import java.security.cert.CertificateException
 import java.time.LocalDateTime
 import java.util.concurrent.locks.ReentrantLock
+import javax.net.ssl.SSLPeerUnverifiedException
 import kotlin.collections.set
 import kotlin.concurrent.withLock
 
@@ -154,6 +156,11 @@ abstract class RemoteFileFetchProviderBase<Connection : ConnectionConfigBase, Re
       sendTopic(FileFetchProvider.CACHE_CHANGES, dataOpsManager.componentManager).onFetchCancelled(query)
     } else {
       var errorMessage = throwable.message ?: "Error"
+
+      //The certificate error message has been truncated for prettier output.
+      if (throwable is SSLPeerUnverifiedException || throwable is CertificateException)
+        errorMessage = errorMessage.split("\n")[0].let { it.substring(0, it.length - 1) }
+
       errorMessage = errorMessage.replace("\n", " ")
       if (throwable is CallException) {
         val details = throwable.errorParams?.get("details")

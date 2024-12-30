@@ -20,11 +20,16 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.components.service
 import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.util.containers.isEmpty
+import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.config.ConfigService
+import eu.ibagroup.formainframe.config.connect.ConnectionConfig
 import eu.ibagroup.formainframe.config.ws.WorkingSetConfig
 import eu.ibagroup.formainframe.config.ws.ui.AbstractWsDialog
 import eu.ibagroup.formainframe.config.ws.ui.AbstractWsDialogState
+import eu.ibagroup.formainframe.utils.addTooltip
 import eu.ibagroup.formainframe.utils.crudable.Crudable
+import eu.ibagroup.formainframe.utils.crudable.getAll
 
 /**
  * Abstract action for adding Working Set (for files or for jobs) through UI.
@@ -69,5 +74,10 @@ abstract class AddWsActionBase : AnAction() {
   /** Updates text regarding the context from which action should be triggered. */
   override fun update(e: AnActionEvent) {
     e.presentation.text = presentationTextInExplorer
+    if (ConfigService.getService().crudable.getAll<ConnectionConfig>().isEmpty()) {
+      e.presentation.isEnabled = false
+      e.presentation.addTooltip(message("create.connection.tooltip"))
+      return
+    }
   }
 }

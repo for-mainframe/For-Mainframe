@@ -11,7 +11,7 @@ All notable changes to the For Mainframe Plugin will be documented in this file.
 * Bugfix: Privacy Policy was open for modifications ([cd917844](https://github.com/zowe/zowe-explorer-intellij/commit/cd917844))
 * Bugfix: Fixed NullPointerException on cancel operation ([f8d08fd4](https://github.com/zowe/zowe-explorer-intellij/commit/f8d08fd4))
 
-## [1.2.4-221] (2024-11-18)
+## [1.2.4-223] (2024-11-18)
 
 ### Bugfixes
 

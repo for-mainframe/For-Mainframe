@@ -597,3 +597,18 @@ fun validateTsoSessionSelection(component: ComboBox<*>, crudable: Crudable): Val
     } else null
   }
 }
+
+/**
+ * Validates REXX arguments text field in Execute REXX dialog
+ * @param component component to validate for
+ * @return ValidationInfo or null if no restrictions found
+ */
+fun validateRexxArguments(component: JBTextField): ValidationInfo? {
+  val text = component.text
+  if (text.isEmpty()) return null
+  if (text.startsWith(",") || text.endsWith(","))
+    return ValidationInfo("Rexx arguments list must not start/end with comma")
+  if (text.contains(Regex(",{2,}")))
+    return ValidationInfo("Rexx arguments must not contain empty arguments")
+  return null
+}

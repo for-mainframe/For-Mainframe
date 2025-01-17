@@ -79,8 +79,8 @@ fun validateForBlank(text: String, component: JComponent): ValidationInfo? {
  * @param password new password
  * @param component confirm password component
  */
-fun validateForPassword(password: String, component: JPasswordField): ValidationInfo? {
-  return if (password != component.password.toString()) ValidationInfo("Passwords do not match", component) else null
+fun validateForPassword(password: CharArray, component: JPasswordField): ValidationInfo? {
+  return if (!password.contentEquals(component.password)) ValidationInfo("Passwords do not match", component) else null
 }
 
 /**

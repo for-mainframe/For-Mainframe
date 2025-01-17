@@ -192,8 +192,8 @@ class ConfigTestSpec : WithApplicationShouldSpec({
     }
     context("Credentials.hashCode") {
       should("check hashcode for uniqueness") {
-        val credentials = Credentials("uuid", "username", "password")
-        val credentials2 = Credentials("uuid", "username", "password")
+        val credentials = Credentials("uuid", "username", "password".toCharArray())
+        val credentials2 = Credentials("uuid", "username", "password".toCharArray())
         val hashcode = credentials.hashCode()
         val hashcode2 = credentials2.hashCode()
 

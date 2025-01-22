@@ -81,8 +81,8 @@ class ConfigTestSpec : WithApplicationShouldSpec({
         configServiceImpl.testInstance = object : TestConfigServiceImpl() {
           override fun <T : Any> getConfigDeclaration(rowClass: Class<out T>): ConfigDeclaration<T> {
             return when (rowClass) {
-              ConnectionConfig::class.java -> ZOSMFConnectionConfigDeclaration(crudable) as ConfigDeclaration<T>
-              Credentials::class.java -> CredentialsConfigDeclaration(crudable) as ConfigDeclaration<T>
+              ConnectionConfig::class.java -> ZOSMFConnectionConfigDeclaration() as ConfigDeclaration<T>
+              Credentials::class.java -> CredentialsConfigDeclaration() as ConfigDeclaration<T>
               else -> super.getConfigDeclaration(rowClass)
             }
           }

@@ -19,7 +19,7 @@ import com.intellij.util.ui.ComboBoxCellEditor
 import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.config.connect.ConnectionConfigBase
 import eu.ibagroup.formainframe.config.ws.WorkingSetConfig
-import eu.ibagroup.formainframe.utils.crudable.*
+import eu.ibagroup.formainframe.utils.crudable.Crudable
 import eu.ibagroup.formainframe.utils.nullable
 import eu.ibagroup.formainframe.utils.toMutableList
 import javax.swing.table.TableCellEditor
@@ -27,8 +27,10 @@ import javax.swing.table.TableCellEditor
 /**
  * Class which represents working set connection name column in working set table model
  */
-class WSConnectionNameColumn<Connection: ConnectionConfigBase, WSConfig : WorkingSetConfig>(private val crudable: Crudable, val connectionClass: Class<out Connection>) :
-  ColumnInfo<WSConfig, String>(message("configurable.ws.tables.ws.connection.name")) {
+class WSConnectionNameColumn<Connection : ConnectionConfigBase, WSConfig : WorkingSetConfig>(private val crudable: Crudable, val connectionClass: Class<out Connection>) :
+  ColumnInfo<WSConfig, String>(
+    message("configurable.ws.table.connection.name")
+  ) {
 
   inner class ConnectionTableCellEditor : ComboBoxCellEditor() {
     override fun getComboBoxItems(): MutableList<String> {
@@ -57,7 +59,7 @@ class WSConnectionNameColumn<Connection: ConnectionConfigBase, WSConfig : Workin
   }
 
   override fun getTooltipText(): String {
-    return message("configurable.ws.tables.ws.connection.tooltip")
+    return message("configurable.ws.table.connection.tooltip")
   }
 
 }

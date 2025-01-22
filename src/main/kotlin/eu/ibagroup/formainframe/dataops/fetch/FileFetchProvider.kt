@@ -14,7 +14,6 @@
 
 package eu.ibagroup.formainframe.dataops.fetch
 
-import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.progress.DumbProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
@@ -37,6 +36,8 @@ interface FileFetchProvider<R : Any, Q : Query<R, Unit>, File : VirtualFile> {
   fun getCached(query: Q): Collection<File>?
 
   fun isCacheValid(query: Q): Boolean
+
+  fun isCacheFetching(query: Q): Boolean
 
   fun getFetchedErrorMessage(query: Q): String? = "Error"
 
@@ -61,14 +62,15 @@ interface FileFetchProvider<R : Any, Q : Query<R, Unit>, File : VirtualFile> {
   )
 
   /**
-   * Function adds (node,query) pair with @param lastRefresh into the corresponding fetch provider refreshCacheState map
+   * Function applies refresh date for the given query
+   * and notifies fetch provider that refresh cache state for this query has been updated
+   * by putting an entry into corresponding map
    *
    * @param query
-   * @param node
    * @param lastRefresh
    * @return Void
    */
-  fun applyRefreshCacheDate(query: Q, node: AbstractTreeNode<*>, lastRefresh: LocalDateTime)
+  fun applyRefreshCacheDate(query: Q, lastRefresh: LocalDateTime)
 
   /**
    * Function finds the lastRefresh date by query in refreshCacheSate map and returns it.

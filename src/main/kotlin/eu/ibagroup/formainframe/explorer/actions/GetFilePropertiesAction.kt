@@ -25,6 +25,8 @@ import eu.ibagroup.formainframe.dataops.attributes.RemoteMemberAttributes
 import eu.ibagroup.formainframe.dataops.attributes.RemoteUssAttributes
 import eu.ibagroup.formainframe.dataops.operations.UssChangeModeOperation
 import eu.ibagroup.formainframe.dataops.operations.UssChangeModeParams
+import eu.ibagroup.formainframe.dataops.operations.UssChangeOwnerOperation
+import eu.ibagroup.formainframe.dataops.operations.UssChangeOwnerParams
 import eu.ibagroup.formainframe.explorer.ExplorerUnit
 import eu.ibagroup.formainframe.explorer.ui.*
 import eu.ibagroup.formainframe.telemetry.NotificationsService
@@ -32,6 +34,7 @@ import eu.ibagroup.formainframe.utils.changeFileEncodingAction
 import eu.ibagroup.formainframe.utils.clone
 import eu.ibagroup.formainframe.utils.isBeingEditingNow
 import org.zowe.kotlinsdk.ChangeMode
+import org.zowe.kotlinsdk.ChangeOwner
 
 /**
  * Action for displaying properties of files on UI in dialog by clicking item in explorer context menu.
@@ -83,28 +86,64 @@ class GetFilePropertiesAction : AnAction() {
             // }
             val oldCharset = attributes.charset
             val initFileMode = attributes.fileMode?.clone()
+            val initOwner = attributes.owner?.clone()
+            val initGroupID = attributes.groupId?.clone()
             val dialog = UssFilePropertiesDialog(project, UssFileState(attributes, virtualFile.isBeingEditingNow()))
             if (dialog.showAndGet()) {
-              if (attributes.fileMode?.owner != initFileMode?.owner || attributes.fileMode?.group != initFileMode?.group || attributes.fileMode?.all != initFileMode?.all) {
-                runBackgroundableTask(
-                  title = "Changing file mode on ${attributes.path}",
-                  project = project,
-                  cancellable = true
-                ) {
-                  if (attributes.fileMode != null) {
-                    runCatching {
-                      dataOpsManager.performOperation(
-                        operation = UssChangeModeOperation(
-                          request = UssChangeModeParams(ChangeMode(mode = attributes.fileMode), attributes.path),
-                          connectionConfig = connectionConfig
-                        ),
-                        progressIndicator = it
-                      )
-                    }.onFailure { t ->
-                      initFileMode?.owner?.let { attributes.fileMode.owner = it }
-                      initFileMode?.group?.let { attributes.fileMode.group = it }
-                      initFileMode?.all?.let { attributes.fileMode.all = it }
-                      NotificationsService.errorNotification(t, e.project)
+              val isFileModeChanged = attributes.fileMode?.owner != initFileMode?.owner
+                  || attributes.fileMode?.group != initFileMode?.group
+                  || attributes.fileMode?.all != initFileMode?.all
+              val isOwnerChanged = attributes.owner != initOwner || attributes.groupId != initGroupID
+              if (isFileModeChanged || isOwnerChanged) {
+                if (isOwnerChanged) {
+                  runBackgroundableTask(
+                    title = "Changing file owner on  ${attributes.path}",
+                    project = project,
+                    cancellable = true
+                  ) {
+                    if (attributes.owner != null || attributes.groupId != null) {
+                      runCatching {
+                        dataOpsManager.performOperation(
+                          operation = UssChangeOwnerOperation(
+                            request = UssChangeOwnerParams(
+                              ChangeOwner(
+                                owner = attributes.owner ?: "",
+                                group = attributes.groupId ?: ""
+                              ), attributes.path
+                            ),
+                            connectionConfig = connectionConfig
+                          ),
+                          progressIndicator = it
+                        )
+                      }.onFailure { t ->
+                        initOwner?.let { attributes.owner = it }
+                        initGroupID?.let { attributes.groupId = it }
+                        NotificationsService.errorNotification(t, e.project)
+                      }
+                    }
+                  }
+                }
+                if (isFileModeChanged) {
+                  runBackgroundableTask(
+                    title = "Changing file mode on ${attributes.path}",
+                    project = project,
+                    cancellable = true
+                  ) {
+                    if (attributes.fileMode != null) {
+                      runCatching {
+                        dataOpsManager.performOperation(
+                          operation = UssChangeModeOperation(
+                            request = UssChangeModeParams(ChangeMode(mode = attributes.fileMode), attributes.path),
+                            connectionConfig = connectionConfig
+                          ),
+                          progressIndicator = it
+                        )
+                      }.onFailure { t ->
+                        initFileMode?.owner?.let { attributes.fileMode.owner = it }
+                        initFileMode?.group?.let { attributes.fileMode.group = it }
+                        initFileMode?.all?.let { attributes.fileMode.all = it }
+                        NotificationsService.errorNotification(t, e.project)
+                      }
                     }
                     node.parent?.cleanCacheIfPossible(cleanBatchedQuery = false)
                   }

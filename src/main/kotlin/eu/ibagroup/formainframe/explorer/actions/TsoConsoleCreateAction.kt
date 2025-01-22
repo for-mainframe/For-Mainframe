@@ -17,8 +17,8 @@ package eu.ibagroup.formainframe.explorer.actions
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.util.Key
 import com.intellij.util.containers.isEmpty
+import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.common.ui.showUntilDone
 import eu.ibagroup.formainframe.config.ConfigService
 import eu.ibagroup.formainframe.config.connect.ConnectionConfig
@@ -31,6 +31,7 @@ import eu.ibagroup.formainframe.telemetry.NotificationsService
 import eu.ibagroup.formainframe.tso.SESSION_ADDED_TOPIC
 import eu.ibagroup.formainframe.tso.config.TSOConfigWrapper
 import eu.ibagroup.formainframe.tso.config.TSOSessionConfig
+import eu.ibagroup.formainframe.utils.addTooltip
 import eu.ibagroup.formainframe.utils.crudable.getAll
 import eu.ibagroup.formainframe.utils.crudable.getByUniqueKey
 import eu.ibagroup.formainframe.utils.runTask
@@ -113,12 +114,12 @@ class TsoConsoleCreateAction : AnAction() {
     e.presentation.text = presentationText
     if (ConfigService.getService().crudable.getAll<ConnectionConfig>().isEmpty()) {
       e.presentation.isEnabled = false
-      e.presentation.putClientProperty(Key(JComponent.TOOL_TIP_TEXT_KEY), "Create connection first")
+      e.presentation.addTooltip(message("create.connection.tooltip"))
       return
     }
     if (ConfigService.getService().crudable.getAll<TSOSessionConfig>().isEmpty()) {
       e.presentation.isEnabled = false
-      e.presentation.putClientProperty(Key(JComponent.TOOL_TIP_TEXT_KEY), "Create TSO session first")
+      e.presentation.addTooltip(message("create.tso.session.tooltip"))
       return
     }
   }

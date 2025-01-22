@@ -28,11 +28,12 @@ import eu.ibagroup.formainframe.explorer.ui.UssFileNode
 import eu.ibagroup.formainframe.utils.crudable.Crudable
 import eu.ibagroup.formainframe.utils.crudable.find
 import eu.ibagroup.formainframe.utils.crudable.getByUniqueKey
+import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.JComponent
 import javax.swing.JPasswordField
 import javax.swing.JTextField
 
-private val urlRegex = Regex("^https?:\\/\\/((([a-zA-Z0-9\\-_]+\\.)+[a-zA-Z]{2,})|(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}))(:\\d+)?((\\/[a-zA-Z0-9\\-_\\.~]+)?)*\\/?\$")
+private val urlRegex = Regex("^https?:\\/\\/((([a-zA-Z0-9\\-_]+\\.)+[a-zA-Z]{2,})|(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}))(:\\d+)?(\\/[a-zA-Z0-9\\-_\\.~]+)*\\/?$")
 private val maskRegex = Regex("^[A-Za-z\\$\\*%@#][A-Za-z0-9\\-\\$\\*%@#]{0,7}")
 private val ussPathRegex = Regex("^/$|^(/[^/]+)+$")
 private val forbiddenSymbol = "/"
@@ -78,8 +79,8 @@ fun validateForBlank(text: String, component: JComponent): ValidationInfo? {
  * @param password new password
  * @param component confirm password component
  */
-fun validateForPassword(password: String, component: JPasswordField): ValidationInfo? {
-  return if (password != component.text) ValidationInfo("Passwords do not match", component) else null
+fun validateForPassword(password: CharArray, component: JPasswordField): ValidationInfo? {
+  return if (!password.contentEquals(component.password)) ValidationInfo("Passwords do not match", component) else null
 }
 
 /**
@@ -528,6 +529,28 @@ fun validateBatchSize(component: JTextField): ValidationInfo? {
 }
 
 /**
+ * Validates job return codes in int text fields.
+ * @param successField filed with minimal success return code
+ * @param defaultSuccessValue previous success return code
+ * @param warningField  filed with minimal warning return code
+ * @param defaultWarningValue previous success return code
+ * @param component current focused component
+ */
+fun validateJobReturnCode(
+  successField: JTextField, defaultSuccessValue: AtomicInteger,
+  warningField: JTextField, defaultWarningValue: AtomicInteger,
+  component: JTextField
+): ValidationInfo? {
+  return if ((successField.text.toIntOrNull() ?: defaultSuccessValue.toInt()) < 0 ||
+    (warningField.text.toIntOrNull() ?: defaultWarningValue.toInt()) < 0)
+    ValidationInfo("Return code should be greater or equal than 0", component)
+  else if ((warningField.text.toIntOrNull() ?: defaultWarningValue.toInt()) <=
+    (successField.text.toIntOrNull() ?: defaultSuccessValue.toInt()))
+    ValidationInfo("Success return code should be less than warning return code", component)
+  else null
+}
+
+/**
  * Validate the TSO session name not to be the same as the existing one
  * @param component the component to check the TSO session name
  * @param ignoreValue the value to ignore during the validation (blank value at the start)
@@ -573,4 +596,19 @@ fun validateTsoSessionSelection(component: ComboBox<*>, crudable: Crudable): Val
       ValidationInfo("TSO session must contain a connection", component)
     } else null
   }
+}
+
+/**
+ * Validates REXX arguments text field in Execute REXX dialog
+ * @param component component to validate for
+ * @return ValidationInfo or null if no restrictions found
+ */
+fun validateRexxArguments(component: JBTextField): ValidationInfo? {
+  val text = component.text
+  if (text.isEmpty()) return null
+  if (text.startsWith(",") || text.endsWith(","))
+    return ValidationInfo("Rexx arguments list must not start/end with comma")
+  if (text.contains(Regex(",{2,}")))
+    return ValidationInfo("Rexx arguments must not contain empty arguments")
+  return null
 }

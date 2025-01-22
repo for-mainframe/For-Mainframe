@@ -59,7 +59,13 @@ interface ConfigService : PersistentStateComponent<ConfigStateV2> {
 
   /** Identifies size of the files batch to fetch in a single request. */
   var batchSize: Int
-  
+
+  /** Max RC to consider as success. */
+  var successMaxCode: Int
+
+  /** Max RC to consider as warning. */
+  var warningMaxCode: Int
+
   /** A delay for the "Rate us" notification to display */
   var rateUsNotificationDelay: Long
 

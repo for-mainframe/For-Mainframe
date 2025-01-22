@@ -15,14 +15,16 @@
 package eu.ibagroup.formainframe.config.connect.ui
 
 import com.intellij.util.ui.ColumnInfo
+import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.config.connect.ui.renderer.UssOwnerColumnRenderer
 import javax.swing.table.TableCellRenderer
 
 /**
  * Class which represents column of USS Owner in connections GUI
  */
-class ConnectionUssOwnerColumn<ConnectionState : ConnectionDialogStateBase<*>>
-  : ColumnInfo<ConnectionState, String>("Owner") {
+class ConnectionUssOwnerColumn<ConnectionState : ConnectionDialogStateBase<*>> : ColumnInfo<ConnectionState, String>(
+  message("configurable.connection.table.owner")
+) {
 
   /**
    * Returns name of particular owner
@@ -49,4 +51,8 @@ class ConnectionUssOwnerColumn<ConnectionState : ConnectionDialogStateBase<*>>
     return UssOwnerColumnRenderer()
   }
 
+  override fun getTooltipText(): String {
+    return message("configurable.connection.table.owner.tooltip")
+  }
 }
+

@@ -110,6 +110,10 @@ Example of how to see the output:<br/>
 
         <extensionPoint name="nameResolver"
                         interface="eu.ibagroup.formainframe.dataops.operations.mover.names.CopyPasteNameResolverFactory"/>
+
+        <extensionPoint name="operationRunnerV3"
+                        interface="eu.ibagroup.formainframe.v3.operations.OperationRunner"
+                        dynamic="true"/>
     </extensionPoints>
 
     <applicationListeners>
@@ -197,6 +201,8 @@ Example of how to see the output:<br/>
 
         <operationRunner implementation="eu.ibagroup.formainframe.dataops.operations.UssChangeModeFactory"/>
 
+        <operationRunner implementation="eu.ibagroup.formainframe.dataops.operations.UssChangeOwnerFactory"/>
+
         <operationRunner
                 implementation="eu.ibagroup.formainframe.dataops.operations.mover.MemberToPdsMoverFactory"/>
 
@@ -283,6 +289,8 @@ Example of how to see the output:<br/>
 
         <operationRunner
                 implementation="eu.ibagroup.formainframe.dataops.operations.uss.ChangeFileTagOperationRunnerFactory"/>
+
+        <operationRunnerV3 implementation="eu.ibagroup.formainframe.v3.operations.RenameOperationRunner"/>
 
         <logFetcher implementation="eu.ibagroup.formainframe.dataops.log.JobLogFetcherFactory"/>
 
@@ -584,6 +592,12 @@ Example of how to see the output:<br/>
             <keyboard-shortcut first-keystroke="F2" keymap="$default"/>
         </action>
 
+        <action id="eu.ibagroup.formainframe.explorer.actions.ExecuteRexxAction"
+                class="eu.ibagroup.formainframe.explorer.actions.rexx.ExecuteRexxAction"
+                text="Execute REXX"
+                description="Executes REXX from a given member"
+                icon="AllIcons.Actions.Execute"/>
+
         <action id="eu.ibagroup.formainframe.explorer.actions.DuplicateMemberAction"
                 class="eu.ibagroup.formainframe.explorer.actions.DuplicateMemberAction"
                 text="Duplicate"
@@ -771,6 +785,7 @@ Example of how to see the output:<br/>
             <reference id="eu.ibagroup.formainframe.explorer.actions.AllocateLikeAction"/>
             <separator/>
             <reference id="eu.ibagroup.formainframe.explorer.actions.SubmitJobAction"/>
+            <reference id="eu.ibagroup.formainframe.explorer.actions.ExecuteRexxAction"/>
             <separator/>
             <reference id="eu.ibagroup.formainframe.explorer.actions.RefreshNodeAction"/>
             <separator/>

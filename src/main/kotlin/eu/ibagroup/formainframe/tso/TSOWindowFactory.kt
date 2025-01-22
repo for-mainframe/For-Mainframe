@@ -27,10 +27,12 @@ import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.messages.Topic
 import eu.ibagroup.formainframe.dataops.DataOpsManager
 import eu.ibagroup.formainframe.dataops.exceptions.CallException
+import eu.ibagroup.formainframe.dataops.exceptions.CredentialsNotFoundForConnectionException
 import eu.ibagroup.formainframe.dataops.operations.MessageData
 import eu.ibagroup.formainframe.dataops.operations.MessageType
 import eu.ibagroup.formainframe.dataops.operations.TsoOperation
 import eu.ibagroup.formainframe.dataops.operations.TsoOperationMode
+import eu.ibagroup.formainframe.explorer.actions.rexx.ExecuteRexxAction
 import eu.ibagroup.formainframe.telemetry.NotificationsService
 import eu.ibagroup.formainframe.tso.config.TSOConfigWrapper
 import eu.ibagroup.formainframe.tso.config.TSOSessionConfig
@@ -124,6 +126,19 @@ interface TSOSessionReopenHandler {
   fun reopen(project: Project, console: TSOConsoleView)
 }
 
+/**
+ * Interface class which represents execute rexx from explorer topic handler
+ */
+interface TSOSessionExecuteRexxFromExplorerHandler {
+  /**
+   * Function which is called when execute rexx event is triggered
+   * @param project
+   * @param tsoConfig
+   * @param rexxConfig
+   */
+  fun executeRexx(project: Project, tsoConfig: TSOConfigWrapper, rexxConfig: ExecuteRexxAction.RexxParams)
+}
+
 @JvmField
 val SESSION_ADDED_TOPIC = Topic.create("tsoSessionAdded", TSOSessionCreateHandler::class.java)
 
@@ -139,6 +154,9 @@ val SESSION_CLOSED_TOPIC = Topic.create("tsoSessionClosed", TSOSessionCloseHandl
 @JvmField
 val SESSION_REOPEN_TOPIC = Topic.create("tsoSessionReopen", TSOSessionReopenHandler::class.java)
 
+@JvmField
+val SESSION_EXECUTE_REXX_TOPIC = Topic.create("tsoSessionExecuteRexx", TSOSessionExecuteRexxFromExplorerHandler::class.java)
+
 const val SESSION_RECONNECT_ERROR_MESSAGE = "Unable to reconnect to the TSO session. Session is closed."
 
 /**
@@ -148,50 +166,6 @@ class TSOWindowFactory : ToolWindowFactory, PossiblyDumbAware, DumbAware {
 
   private var currentTsoSession: TSOConfigWrapper? = null
   private val tsoSessionToConfigMap = mutableMapOf<String, TSOSessionConfig>()
-
-  /**
-   * Static companion object for TSO tool window class
-   */
-  companion object {
-
-    /**
-     * Method is used to parse response for every TSO session created
-     * @param tsoResponse - response from TSO session
-     * @return String message
-     */
-    fun parseTSODataResponse(tsoResponse: TsoResponse): String {
-      val tsoData = tsoResponse.tsoData
-      var message = ""
-      tsoData.forEach {
-        if (it.tsoMessage?.data != null) {
-          message += (it.tsoMessage?.data)
-          message += "\n"
-        }
-      }
-      return message
-    }
-
-    /**
-     * Method is used to get all messages in queue for particular TSO session
-     * @param session - TSO session config wrapper instance
-     * @return an instance of TSO response
-     * @throws Exception if operation is not successful
-     */
-    fun getTsoMessageQueue(session: TSOConfigWrapper): TsoResponse {
-      runCatching {
-        DataOpsManager.getService().performOperation(
-          TsoOperation(
-            state = session,
-            mode = TsoOperationMode.GET_MESSAGES
-          )
-        )
-      }.onSuccess { return it }
-        .onFailure {
-          NotificationsService.errorNotification(it, custTitle = "Error getting TSO response messages")
-        }
-      return TsoResponse()
-    }
-  }
 
   /**
    * Method is called to initialize TSO session console view. It registers content and displays it
@@ -345,16 +319,25 @@ class TSOWindowFactory : ToolWindowFactory, PossiblyDumbAware, DumbAware {
               processHandler.notifyTextAvailable(parseTSODataResponse(response), ProcessOutputType.STDOUT)
             }
           }.onFailure {
-            processHandler.notifyTextAvailable(
-              "Unsuccessful execution of the TSO request. Connection was broken.\n",
-              ProcessOutputType.STDOUT
-            )
-            executeTsoReconnectWithTimeout(
-              timeout = session.getTSOSessionConfig().timeout,
-              maxAttempts = session.getTSOSessionConfig().maxAttempts,
-              tsoConsole = console
-            ) {
-              wrapInlineCall { sendTopic(SESSION_RECONNECT_TOPIC, project).reconnect(project, console, session) }
+            if (it is CredentialsNotFoundForConnectionException) {
+              processHandler.notifyTextAvailable(
+                "Unable to obtain the connection information for connection=${session.getConnectionConfig()}.\n Session will be closed.",
+                ProcessOutputType.STDOUT
+              )
+              session.onSessionFailure(it)
+              processHandler.destroyProcess()
+            } else {
+              processHandler.notifyTextAvailable(
+                "Unsuccessful execution of the TSO request. Connection was broken.\n",
+                ProcessOutputType.STDOUT
+              )
+              executeTsoReconnectWithTimeout(
+                timeout = session.getTSOSessionConfig().timeout,
+                maxAttempts = session.getTSOSessionConfig().maxAttempts,
+                tsoConsole = console
+              ) {
+                wrapInlineCall { sendTopic(SESSION_RECONNECT_TOPIC, project).reconnect(project, console, session) }
+              }
             }
           }
         }
@@ -414,6 +397,53 @@ class TSOWindowFactory : ToolWindowFactory, PossiblyDumbAware, DumbAware {
               project = project,
               custTitle = "Error starting a new TSO session"
             )
+          }
+        }
+      }
+    )
+
+    subscribe(
+      project = project,
+      topic = SESSION_EXECUTE_REXX_TOPIC,
+      handler = object : TSOSessionExecuteRexxFromExplorerHandler {
+        override fun executeRexx(
+          project: Project,
+          tsoConfig: TSOConfigWrapper,
+          rexxConfig: ExecuteRexxAction.RexxParams
+        ) {
+          sendTopic(SESSION_ADDED_TOPIC, project).create(project, tsoConfig)
+          val selectedSessionContent = toolWindow.contentManager.selectedContent
+          if (selectedSessionContent != null) {
+            var commandToExecute = "EXEC '${rexxConfig.rexxLibrary}(${rexxConfig.execMember})'"
+            var passedArguments = ""
+            val consoleView = selectedSessionContent.component as TSOConsoleView
+            val processHandler = consoleView.getProcessHandler()
+
+            if (rexxConfig.rexxArguments.isNotEmpty()) {
+              rexxConfig.rexxArguments.forEach { passedArguments += "$it," }
+                .also { passedArguments = passedArguments.removeSuffix(",") }
+              commandToExecute += " '$passedArguments'"
+            }
+
+            processHandler.notifyTextAvailable(commandToExecute + "\n", ProcessOutputType.STDOUT)
+            sendTopic(SESSION_COMMAND_ENTERED).processCommand(
+              project,
+              consoleView,
+              tsoConfig,
+              commandToExecute,
+              MessageType.TSO_RESPONSE,
+              MessageData.DATA_DATA,
+              processHandler
+            )
+            processHandler.notifyTextAvailable("> ", ProcessOutputType.STDOUT)
+          } else {
+            NotificationsService
+              .errorNotification(
+                Exception(),
+                project = project,
+                custTitle = "Error getting TSO runtime session",
+                custDetailsShort = "Cannot execute REXX program, because we cannot find TSO session. Please retry"
+              )
           }
         }
       }
@@ -540,7 +570,7 @@ class TSOWindowFactory : ToolWindowFactory, PossiblyDumbAware, DumbAware {
               SESSION_RECONNECT_ERROR_MESSAGE,
               ProcessOutputType.STDOUT
             )
-            tsoSession.markSessionUnresponsive()
+            tsoSession.onSessionFailure(throwable)
             processHandler.destroyProcess()
             cancel()
             service.shutdown()
@@ -563,4 +593,42 @@ class TSOWindowFactory : ToolWindowFactory, PossiblyDumbAware, DumbAware {
    */
   abstract class TsoReconnectTask(val service: ScheduledExecutorService) : TimerTask()
 
+}
+
+/**
+ * Method is used to parse response for every TSO session created
+ * @param tsoResponse - response from TSO session
+ * @return String message
+ */
+fun parseTSODataResponse(tsoResponse: TsoResponse): String {
+  val tsoData = tsoResponse.tsoData
+  var message = ""
+  tsoData.forEach {
+    if (it.tsoMessage?.data != null) {
+      message += (it.tsoMessage?.data)
+      message += "\n"
+    }
+  }
+  return message
+}
+
+/**
+ * Method is used to get all messages in queue for particular TSO session
+ * @param session - TSO session config wrapper instance
+ * @return an instance of TSO response
+ * @throws Exception if operation is not successful
+ */
+fun getTsoMessageQueue(session: TSOConfigWrapper): TsoResponse {
+  runCatching {
+    DataOpsManager.getService().performOperation(
+      TsoOperation(
+        state = session,
+        mode = TsoOperationMode.GET_MESSAGES
+      )
+    )
+  }.onSuccess { return it }
+    .onFailure {
+      NotificationsService.getService().notifyError(it, custTitle = "Error getting TSO response messages")
+    }
+  return TsoResponse()
 }

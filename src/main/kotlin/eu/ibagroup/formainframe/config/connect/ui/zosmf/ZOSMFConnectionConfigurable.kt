@@ -21,6 +21,7 @@ import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.dsl.builder.panel
+import eu.ibagroup.formainframe.common.message
 import eu.ibagroup.formainframe.common.ui.DEFAULT_ROW_HEIGHT
 import eu.ibagroup.formainframe.common.ui.DialogMode
 import eu.ibagroup.formainframe.common.ui.ValidatingTableView
@@ -192,7 +193,7 @@ class ZOSMFConnectionConfigurable : BoundSearchableConfigurable("z/OSMF Connecti
       })
 
     return panel {
-      group("z/OSMF Connections", false) {
+      group(message("configurable.connection.title"), false) {
         row {
           tableWithToolbar(table) {
             configureDecorator {

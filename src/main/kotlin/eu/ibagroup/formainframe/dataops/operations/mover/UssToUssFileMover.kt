@@ -51,10 +51,10 @@ class UssToUssFileMover(private val dataOpsManager: DataOpsManager) : AbstractFi
 
   override fun canRun(operation: MoveCopyOperation): Boolean {
     return operation.sourceAttributes is RemoteUssAttributes
-            && operation.destinationAttributes is RemoteUssAttributes
-            && operation.destinationAttributes.isDirectory
-            && operation.commonUrls(dataOpsManager).isNotEmpty()
-            && !operation.destination.getParentsChain().containsAll(operation.source.getParentsChain())
+      && operation.destinationAttributes is RemoteUssAttributes
+      && operation.destinationAttributes.isDirectory
+      && operation.commonUrls(dataOpsManager).isNotEmpty()
+      && !operation.destination.getParentsChain().containsAll(operation.source.getParentsChain())
   }
 
   override val log = log<UssToUssFileMover>()
@@ -86,8 +86,8 @@ class UssToUssFileMover(private val dataOpsManager: DataOpsManager) : AbstractFi
     connectionConfig: ConnectionConfig,
     operation: MoveCopyOperation,
     from: String,
-    to: String)
-  : Pair<Call<Void>, () -> Unit> {
+    to: String
+  ) : Pair<Call<Void>, () -> Unit> {
     val copyCall = buildCopyCall(connectionConfig, operation, from, to).first
     val deleteSourceCallback = buildDeleteSourceCallback(operation)
     return Pair(copyCall, deleteSourceCallback)
@@ -101,8 +101,8 @@ class UssToUssFileMover(private val dataOpsManager: DataOpsManager) : AbstractFi
     connectionConfig: ConnectionConfig,
     operation: MoveCopyOperation,
     from: String,
-    to: String)
-  : Pair<Call<Void>, () -> Unit> {
+    to: String
+  ) : Pair<Call<Void>, () -> Unit> {
     return Pair(
       api<DataAPI>(connectionConfig).copyUssFile(
         authorizationToken = connectionConfig.authToken,
@@ -154,13 +154,13 @@ class UssToUssFileMover(private val dataOpsManager: DataOpsManager) : AbstractFi
    *
    * @return target destination in String format
    */
-  private fun computeUssDestination(operation: MoveCopyOperation) : String {
+  private fun computeUssDestination(operation: MoveCopyOperation): String {
     val destinationRootPath = (operation.destinationAttributes as RemoteUssAttributes).path
     val destinationNewName = operation.newName
     val destinationNewNameWithDelimiter = USS_DELIMITER + operation.newName
     // Copying or Moving USS directory
     return if (operation.source.isDirectory && operation.destination.isDirectory) {
-        destinationRootPath + if (destinationNewName != null) destinationNewNameWithDelimiter else ""
+      destinationRootPath + if (destinationNewName != null) destinationNewNameWithDelimiter else ""
     }
     // Copying or Moving USS file
     else destinationRootPath + USS_DELIMITER + (operation.newName ?: operation.sourceAttributes?.name)

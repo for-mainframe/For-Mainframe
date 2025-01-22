@@ -263,7 +263,6 @@ class PurgeJobAction : AnAction() {
     e: AnActionEvent,
     view: JesExplorerView
   ) {
-    val dataOpsManager = DataOpsManager.getService()
     nodes.forEach { nodeData ->
       val jobAttributes = nodeData.attributes as RemoteJobAttributes
       val jobStatus = jobAttributes.jobInfo
@@ -274,7 +273,7 @@ class PurgeJobAction : AnAction() {
         cancellable = true
       ) {
         runCatching {
-          dataOpsManager.performOperation(
+          DataOpsManager.getService().performOperation(
             operation = PurgeJobOperation(
               request = BasicPurgeJobParams(jobStatus.jobName, jobStatus.jobId),
               connectionConfig = connectionConfig

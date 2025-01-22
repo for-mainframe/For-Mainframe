@@ -16,7 +16,6 @@ package eu.ibagroup.formainframe.explorer.ui
 
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeNode
-import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.SimpleTextAttributes
@@ -30,10 +29,7 @@ import eu.ibagroup.formainframe.dataops.Query
 import eu.ibagroup.formainframe.dataops.attributes.RemoteDatasetAttributes
 import eu.ibagroup.formainframe.dataops.fetch.LibraryQuery
 import eu.ibagroup.formainframe.explorer.ExplorerUnit
-import eu.ibagroup.formainframe.utils.castOrNull
-import eu.ibagroup.formainframe.utils.locked
-import eu.ibagroup.formainframe.utils.toHumanReadableFormat
-import java.time.LocalDateTime
+import eu.ibagroup.formainframe.utils.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -51,16 +47,12 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
   private val lock = ReentrantLock()
   private val condition = lock.newCondition()
 
-  private val connectionError = "Error: Check connection"
-  private val refreshLabel = "latest refresh:"
-  private val outOfSync: String = "Out of sync"
-
   @Volatile
   private var needsToShowPlus = true
 
   private var cachedChildren: List<AbstractTreeNode<*>>? by locked(null, lock)
 
-  private val fileFetchProvider
+  protected val fileFetchProvider
     get() = DataOpsManager.getService()
       .getFileFetchProvider(requestClass, queryClass, vFileClass)
 
@@ -76,9 +68,6 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
 
   /** Indicates whether the next children fetch should load more child elements to the children list */
   var needToLoadMore = false
-
-  /** Indicates whether it is possible to fetch for the current node or is it currently being executed  */
-  private var possibleToFetch = true
 
   protected abstract fun Collection<File>.toChildrenNodes(): List<AbstractTreeNode<*>>
 
@@ -117,7 +106,7 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
         val q = fileFetchProvider.getRealQueryInstance(query) ?: query
         if (q != null && fileFetchProvider.isCacheValid(q)) {
           val fetched = fileFetchProvider.getCached(q)?.toMutableList()
-          if (fetched != null && !needToLoadMore) {
+          if (fetched != null && !needToLoadMore && !fileFetchProvider.isCacheFetching(q)) {
             fetched
               .toChildrenNodes()
               .toMutableList()
@@ -143,12 +132,12 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
                 cachedChildren = it
               }
           } else {
-            if (possibleToFetch) {
-              possibleToFetch = false
-              runBackgroundableTask(
+            if (!fileFetchProvider.isCacheFetching(q)) {
+              runBackgroundableSyncTask(
                 title = makeFetchTaskTitle(q),
                 project = project,
-                cancellable = true
+                cancellable = true,
+                virtualFile = virtualFile
               ) {
                 var isMembersFetchOnInvalidDS = false
                 // This functionality is going to skip the fetch of dataset members
@@ -166,15 +155,10 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
                   if (needToLoadMore) {
                     fileFetchProvider.loadMore(q, it)
                   } else {
-                    fileFetchProvider.apply {
-                      reload(q, it)
-                      applyRefreshCacheDate(q, this@FileFetchNode, LocalDateTime.now())
-                    }
+                    fileFetchProvider.reload(q, it)
                   }
-
                 }
                 needToLoadMore = false
-                possibleToFetch = true
               }
             }
             (fetched?.toChildrenNodes()?.toMutableList() ?: mutableListOf()).apply { add(loadingNode) }
@@ -182,7 +166,7 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
         } else {
           errorNode(
             if (unit.connectionConfig == null) {
-              connectionError
+              message("explorer.tree.node.label.error.connection")
             } else {
               q?.let { it1 -> fileFetchProvider.getFetchedErrorMessage(it1) } ?: message("title.error")
             }
@@ -221,12 +205,19 @@ abstract class FileFetchNode<Connection : ConnectionConfigBase, Value : Any, R :
     if (q != null) {
       val lastKnownRefreshTime = fileFetchProvider.findCacheRefreshDateIfPresent(q)
       if (lastKnownRefreshTime != null) {
-        presentation.addText(
-          " $refreshLabel ${lastKnownRefreshTime.toHumanReadableFormat()}",
-          SimpleTextAttributes.GRAYED_ATTRIBUTES
-        )
+        presentation
+          .append(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+          .append(
+            message("explorer.tree.node.label.refreshed", lastKnownRefreshTime.toHumanReadableFormat()),
+            SimpleTextAttributes.GRAY_ATTRIBUTES
+          )
       }
-    } else presentation.addText(" $outOfSync", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+    } else presentation
+      .append(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+      .append(
+        message("explorer.tree.node.label.outOfSync"),
+        SimpleTextAttributes.GRAYED_ATTRIBUTES
+      )
   }
 
   /**

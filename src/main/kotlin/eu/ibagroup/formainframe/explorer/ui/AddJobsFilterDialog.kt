@@ -16,7 +16,10 @@ package eu.ibagroup.formainframe.explorer.ui
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.ui.validation.DialogValidation
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBTextField
@@ -64,7 +67,7 @@ class AddJobsFilterDialog(
         dialogPanel.validateAll()
         var validationInfo: ValidationInfo? = null
         componentsToIsJobId.forEach { (component, isJobId) ->
-          validationInfo = validateJobFilter(prefixField.text, ownerField.text, jobIdField.text, state.ws.masks, component, isJobId)
+          validationInfo = validateJobFilter(prefixField.text, ownerField.text, jobIdField.text, state.selectedWS.masks, component, isJobId)
           if (validationInfo != null) return validationInfo
         }
         return null

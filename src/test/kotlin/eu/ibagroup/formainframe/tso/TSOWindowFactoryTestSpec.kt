@@ -16,6 +16,8 @@ package eu.ibagroup.formainframe.tso
 
 import com.intellij.execution.process.NopProcessHandler
 import com.intellij.execution.process.ProcessOutputType
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -25,8 +27,10 @@ import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
 import eu.ibagroup.formainframe.config.connect.ConnectionConfig
 import eu.ibagroup.formainframe.dataops.DataOpsManager
 import eu.ibagroup.formainframe.dataops.Operation
+import eu.ibagroup.formainframe.dataops.exceptions.CredentialsNotFoundForConnectionException
 import eu.ibagroup.formainframe.dataops.operations.MessageData
 import eu.ibagroup.formainframe.dataops.operations.MessageType
+import eu.ibagroup.formainframe.explorer.actions.rexx.ExecuteRexxAction
 import eu.ibagroup.formainframe.telemetry.NotificationsService
 import eu.ibagroup.formainframe.testutils.WithApplicationShouldSpec
 import eu.ibagroup.formainframe.testutils.testServiceImpl.TestDataOpsManagerImpl
@@ -37,15 +41,8 @@ import eu.ibagroup.formainframe.tso.ui.TSOConsoleView
 import eu.ibagroup.formainframe.utils.sendTopic
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import io.mockk.Runs
-import io.mockk.clearAllMocks
-import io.mockk.clearMocks
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.spyk
-import io.mockk.verify
+import io.mockk.*
+import org.zowe.kotlinsdk.TsoData
 import org.zowe.kotlinsdk.TsoResponse
 
 class TSOWindowFactoryTestSpec : WithApplicationShouldSpec({
@@ -58,6 +55,7 @@ class TSOWindowFactoryTestSpec : WithApplicationShouldSpec({
 
     val connectionConfig = mockk<ConnectionConfig>()
     val console = mockk<TSOConsoleView>()
+    val processHandler = spyk(NopProcessHandler())
     val project = ProjectManager.getInstance().defaultProject
     val toolWindow = spyk(MockToolWindow(project))
     val classUnderTest = spyk(TSOWindowFactory(), recordPrivateCalls = true)
@@ -65,11 +63,86 @@ class TSOWindowFactoryTestSpec : WithApplicationShouldSpec({
     val tsoSessionConfig = mockk<TSOSessionConfig>()
     every { tsoSessionConfig.timeout } returns 10
     every { tsoSessionConfig.maxAttempts } returns 3
+    every { connectionConfig.name } returns "TEST CONNECTION"
+    every { console.getProcessHandler() } returns processHandler
+    every { processHandler.notifyTextAvailable(any(), any()) } just Runs
+    every { classUnderTest.addToolWindowContent(any(), any(), any()) } just Runs
 
     // initialize topics to be able to call them
     classUnderTest.init(toolWindow)
 
     val notificationsService = NotificationsService.getService() as TestNotificationsServiceImpl
+
+    context("Execute REXX from Explorer") {
+
+      val rexxConfig = ExecuteRexxAction.RexxParams(mutableListOf("arg1", "arg2"))
+      rexxConfig.tsoSessionConfig = tsoSessionConfig
+      rexxConfig.rexxLibrary = "ARST.TEST"
+      rexxConfig.execMember = "SAMPLE"
+      val tsoSendMessageResponse = TsoResponse("TEST KEY",
+        tsoData = mutableListOf(
+          TsoData(tsoMessage = org.zowe.kotlinsdk.MessageType(version = "0001", data = "COMMAND EXECUTED")),
+          TsoData(tsoPrompt = org.zowe.kotlinsdk.MessageType(version = "0001"))
+        )
+      )
+
+      val dataOpsManager = ApplicationManager.getApplication().service<DataOpsManager>() as TestDataOpsManagerImpl
+      dataOpsManager.testInstance = object : TestDataOpsManagerImpl() {
+        override fun <R : Any> performOperation(operation: Operation<R>, progressIndicator: ProgressIndicator): R {
+          @Suppress("UNCHECKED_CAST")
+          return tsoSendMessageResponse as R
+        }
+      }
+
+      should("should execute REXX pgm by given REXX config with arguments") {
+
+        val tsoSessionWrapper = TSOConfigWrapper(tsoSessionConfig, connectionConfig, TsoResponse(servletKey = "TEST KEY"))
+        val contentToAdd = toolWindow.contentManager.factory.createContent(console, "TEST CONTENT", false)
+        toolWindow.contentManager.addSelectedContent(contentToAdd)
+        sendTopic(SESSION_EXECUTE_REXX_TOPIC).executeRexx(project, tsoSessionWrapper, rexxConfig)
+
+        verify { classUnderTest.addToolWindowContent(project, toolWindow, tsoSessionWrapper) }
+        verify(exactly = 1) { processHandler.notifyTextAvailable("EXEC '${rexxConfig.rexxLibrary}(${rexxConfig.execMember})' 'arg1,arg2'\n", ProcessOutputType.STDOUT) }
+        verify(exactly = 1) { processHandler.notifyTextAvailable("COMMAND EXECUTED\n", ProcessOutputType.STDOUT) }
+      }
+
+      should("should execute REXX pgm by given REXX config without arguments") {
+        clearMocks(processHandler, verificationMarks = true, recordedCalls = true)
+        val tsoSessionWrapper = TSOConfigWrapper(tsoSessionConfig, connectionConfig, TsoResponse(servletKey = "TEST KEY"))
+        rexxConfig.rexxArguments = mutableListOf()
+        sendTopic(SESSION_EXECUTE_REXX_TOPIC).executeRexx(project, tsoSessionWrapper, rexxConfig)
+
+        verify { classUnderTest.addToolWindowContent(project, toolWindow, tsoSessionWrapper) }
+        verify(exactly = 1) { processHandler.notifyTextAvailable("EXEC '${rexxConfig.rexxLibrary}(${rexxConfig.execMember})'\n", ProcessOutputType.STDOUT) }
+        verify(exactly = 1) { processHandler.notifyTextAvailable("COMMAND EXECUTED\n", ProcessOutputType.STDOUT) }
+      }
+
+      should("should call notifyError if TSO session was not found in the contentManager") {
+        var isCorrectErrorNotificationTriggered = false
+        clearMocks(processHandler, verificationMarks = true, recordedCalls = true)
+        val tsoSessionWrapper = TSOConfigWrapper(tsoSessionConfig, connectionConfig, TsoResponse(servletKey = "TEST KEY"))
+        toolWindow.contentManager.removeAllContents(false)
+        notificationsService.testInstance = object : TestNotificationsServiceImpl() {
+          override fun notifyError(
+            t: Throwable,
+            project: Project?,
+            custTitle: String?,
+            custDetailsShort: String?,
+            custDetailsLong: String?
+          ) {
+            if (custTitle == "Error getting TSO runtime session" ) {
+              isCorrectErrorNotificationTriggered = true
+            }
+          }
+        }
+
+        sendTopic(SESSION_EXECUTE_REXX_TOPIC).executeRexx(project, tsoSessionWrapper, rexxConfig)
+
+        assertSoftly {
+          isCorrectErrorNotificationTriggered shouldBe true
+        }
+      }
+    }
 
     context("Reconnect to the session") {
 
@@ -104,7 +177,50 @@ class TSOWindowFactoryTestSpec : WithApplicationShouldSpec({
 
     context("process tso command") {
 
-      val processHandler = spyk(NopProcessHandler())
+      should("should stop processing and shutdown processHandler in case of CredentialsNotFoundForConnection is thrown") {
+        // given
+        clearMocks(processHandler, verificationMarks = true, recordedCalls = true)
+        val dataOpsManager = ApplicationManager.getApplication().service<DataOpsManager>() as TestDataOpsManagerImpl
+        dataOpsManager.testInstance = object : TestDataOpsManagerImpl() {
+          override fun <R : Any> performOperation(operation: Operation<R>, progressIndicator: ProgressIndicator): R {
+            throw CredentialsNotFoundForConnectionException(ConnectionConfig())
+          }
+
+        }
+
+        val oldSessionResponse = TsoResponse(servletKey = "test-servletKey-1")
+        val session = TSOConfigWrapper(tsoSessionConfig, connectionConfig, oldSessionResponse)
+        val command = "TIME"
+        val messageType = mockk<MessageType>()
+        val messageData = mockk<MessageData>()
+
+        every { console.getTsoSession() } returns session
+
+        // when
+        sendTopic(SESSION_COMMAND_ENTERED).processCommand(
+          project,
+          console,
+          session,
+          command,
+          messageType,
+          messageData,
+          processHandler
+        )
+
+        // then
+        verify(exactly = 1) {
+          processHandler.notifyTextAvailable(
+            "Unable to obtain the connection information for connection=${session.getConnectionConfig()}.\n Session will be closed.",
+            ProcessOutputType.STDOUT
+          )
+        }
+        verify(exactly = 1) {
+          processHandler.destroyProcess()
+        }
+        assertSoftly {
+          session.unresponsive shouldBe true
+        }
+      }
 
       should("should reconnect to the tso session after unsuccessful execution of the command") {
         // given
@@ -123,9 +239,7 @@ class TSOWindowFactoryTestSpec : WithApplicationShouldSpec({
         val messageType = mockk<MessageType>()
         val messageData = mockk<MessageData>()
 
-        every { console.getProcessHandler() } returns processHandler
         every { console.getTsoSession() } returns session
-        every { processHandler.notifyTextAvailable(any(), any()) } just Runs
 
         val capturedFunc = slot<() -> Unit>()
         every { classUnderTest.wrapInlineCall(capture(capturedFunc)) } just Runs
@@ -185,7 +299,6 @@ class TSOWindowFactoryTestSpec : WithApplicationShouldSpec({
 
         every { consoleView.terminalWidget } returns widget
         every { widget.stop() } just Runs
-        every { console.getProcessHandler() } returns processHandler
         every { console.getTsoSession() } returns session
         every { console.getTerminalConsole() } returns consoleView
         val command = "TIME"

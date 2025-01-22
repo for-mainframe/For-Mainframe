@@ -12,6 +12,7 @@
 **/mock_project/*
 
 verifier-all.jar
+**/mock_project/idea.log
 
 # Windows thumbnail cache files
 Thumbs.db
@@ -38,3 +39,5 @@ bin
 # Fleet files
 .fleet
 .editorconfig
+/out
+/allure-results

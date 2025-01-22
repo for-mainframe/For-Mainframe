@@ -16,11 +16,10 @@ package eu.ibagroup.formainframe.dataops.attributes
 
 import eu.ibagroup.formainframe.config.connect.ConnectionConfig
 import eu.ibagroup.formainframe.config.ws.DSMask
-import eu.ibagroup.formainframe.utils.nullIfBlank
 
 /**
  * Information object with query mask and connection configuration inside
- * to send request for a list of datasets to zosmf.
+ * to send request for a list of datasets to z/OSMF.
  * @param connectionConfig connection configuration to specify the system to work with.
  * @param queryMask datasets mask.
  */

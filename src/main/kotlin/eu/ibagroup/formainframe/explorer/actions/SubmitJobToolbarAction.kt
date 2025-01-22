@@ -32,9 +32,7 @@ import eu.ibagroup.formainframe.utils.sendTopic
  */
 class SubmitJobToolbarAction : AnAction() {
 
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.EDT
-  }
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   /**
    * Submit a job on button click

@@ -47,6 +47,7 @@ import eu.ibagroup.formainframe.explorer.FilesWorkingSet
 import eu.ibagroup.formainframe.telemetry.NotificationsService
 import eu.ibagroup.formainframe.utils.getMinimalCommonParents
 import eu.ibagroup.formainframe.utils.getParentsChain
+import eu.ibagroup.formainframe.utils.performUnitsDeletionBasedOnSelection
 import eu.ibagroup.formainframe.vfs.MFVirtualFile
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
@@ -432,63 +433,22 @@ class FileExplorerView(
     /** Deletes files corresponding to the selected nodes data. */
     override fun deleteElement(dataContext: DataContext) {
       val selected = mySelectedNodesData
-      selected.map { it.node }
-        .filterIsInstance<FilesWorkingSetNode>()
-        .forEach {
-          if (
-            showYesNoDialog(
-              title = "Deletion of Working Set ${it.unit.name}",
-              message = "Do you want to delete this Working Set from configs? Note: all data under it will be untouched",
-              project = project,
-              icon = AllIcons.General.QuestionDialog
-            )
-          ) {
-            explorer.disposeUnit(it.unit as FilesWorkingSet)
-          }
+
+      // Find items to delete (working set node or dataset mask node or USS mask node)
+      val suitableToDelete = selected.map { it.node }
+        .filter { node -> node is FilesWorkingSetNode || node is DSMaskNode || (node is UssDirNode && node.isUssMask) }
+
+      val (workingSetsToDelete, selectedMasks) = suitableToDelete.partition { node -> node is FilesWorkingSetNode }
+      val masksToDelete = selectedMasks.filter { mask -> !workingSetsToDelete.contains(mask.parent) }
+
+      // Delete working sets and masks that do not belong to them
+      (workingSetsToDelete + masksToDelete).apply {
+        if (isNotEmpty()) {
+          performUnitsDeletionBasedOnSelection(project, this@FileExplorerView, null)
         }
-      selected.map { it.node }
-        .filterIsInstance<DSMaskNode>()
-        .filter { explorer.isUnitPresented(it.unit) }
-        .forEach {
-          if (
-            showYesNoDialog(
-              title = "Deletion of DS Mask ${it.value.mask}",
-              message = "Do you want to delete this mask from configs? Note: all data sets under it will be untouched",
-              project = project,
-              icon = AllIcons.General.QuestionDialog
-            )
-          ) {
-            it.cleanCache(
-              recursively = true,
-              cleanFetchProviderCache = true,
-              cleanBatchedQuery = true,
-              sendTopic = false
-            )
-            it.unit.removeMask(it.value)
-          }
-        }
-      selected.map { it.node }
-        .filterIsInstance<UssDirNode>()
-        .filter { it.isUssMask && explorer.isUnitPresented(it.unit) }
-        .forEach {
-          val node = it
-          if (
-            showYesNoDialog(
-              title = "Deletion of Uss Path Root ${node.value.path}",
-              message = "Do you want to delete this USS path root from configs? Note: all files under it will be untouched",
-              project = project,
-              icon = AllIcons.General.QuestionDialog
-            )
-          ) {
-            node.cleanCache(
-              recursively = true,
-              cleanFetchProviderCache = true,
-              cleanBatchedQuery = true,
-              sendTopic = false
-            )
-            node.unit.removeUssPath(node.value)
-          }
-        }
+      }
+
+      // perform files deletion
       val nodeAndFilePairs = optimizeDeletion(selected)
       if (nodeAndFilePairs.isNotEmpty()) {
         val files = nodeAndFilePairs.map { it.second }.toSet().toList()
@@ -522,10 +482,14 @@ class FileExplorerView(
                   }
                 indicator.fraction += 1.0 / filteredFiles.size
               }
-            filteredNodeAndFilePairs.map { it.first }
-              .mapNotNull { it.node.parent }
+            filteredNodeAndFilePairs
+              .asSequence()
+              .map { myFsTreeStructure.findByVirtualFile(it.second) }
+              .flatten()
+              .mapNotNull { it.parent }
               .distinctBy { it.path }
               .filterIsInstance<FileFetchNode<*, *, *, *, *, *>>()
+              .toList()
               .forEach {
                 it.cleanCache(
                   recursively = it is UssDirNode,
@@ -593,12 +557,14 @@ class FileExplorerView(
         return true
       val nodeAndFilePairs = optimizeDeletion(selected)
       return if (nodeAndFilePairs.isNotEmpty()) {
+        // Enable deletion for the following selection only:
+        // 1) nodes selection have identical attribute types only, e.g. RemoteUssAttributes, RemoteDatasetAttributes
+        // 2) Nodes selection does not contain different nature, e.g. UssDirNode and DsMaskNode
+        // 3) nodes selection is accepted by delete operation
+        // Nested nodes selection, e.g. Directory + SubDirectory + SubDirectory file is handled by optimizeDeletion
         val filesAttrTypes = nodeAndFilePairs.mapNotNull { it.first.attributes }.map { it::class.simpleName }.distinct()
-        var checkForUss = true
-        if (filesAttrTypes.any { it == "RemoteUssAttributes" })
-          checkForUss = nodeAndFilePairs.map { it.first.node::class.simpleName }.distinct().size == 1
         filesAttrTypes.size == 1 && wsNodes.isEmpty() && deleteOperations.any { op ->
-          dataOpsManager.isOperationSupported(op) && checkForUss
+          dataOpsManager.isOperationSupported(op)
         }
       } else false
     }

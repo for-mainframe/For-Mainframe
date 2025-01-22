@@ -19,8 +19,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import eu.ibagroup.formainframe.vfs.MFVirtualFile
 import java.io.IOException
 
-const val SYNC_NOTIFICATION_GROUP_ID = "eu.ibagroup.formainframe.explorer.SyncNotificationGroupId"
-
 /**
  * Interface to provide synchronization of content downloaded
  * and prepared with mainframe with some storage in Intellij.
@@ -42,6 +40,9 @@ interface SyncProvider {
    *  @see MFVirtualFile
    */
   val vFileClass: Class<out VirtualFile>
+
+  /** Indicates whether the last sync was successful. */
+  var isSyncSuccessful: Boolean
 
   /**
    * Returns document for the file.

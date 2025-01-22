@@ -54,9 +54,24 @@ class AddJobsFilterDialog(
     lateinit var prefixField: JBTextField
     lateinit var ownerField: JBTextField
     lateinit var jobIdField: JBTextField
+    lateinit var dialogPanel: DialogPanel
     val sameWidthGroup = "ADD_JOB_FILTER_DIALOG_LABELS_WIDTH_GROUP"
 
-    return panel {
+    class ValidatePrefix(
+      var componentsToIsJobId: List<Pair<JBTextField, Boolean>>
+    ) : DialogValidation {
+      override fun validate(): ValidationInfo? {
+        dialogPanel.validateAll()
+        var validationInfo: ValidationInfo? = null
+        componentsToIsJobId.forEach { (component, isJobId) ->
+          validationInfo = validateJobFilter(prefixField.text, ownerField.text, jobIdField.text, state.ws.masks, component, isJobId)
+          if (validationInfo != null) return validationInfo
+        }
+        return null
+      }
+    }
+
+    dialogPanel = panel {
       row {
         label("JES working set: ")
         if (wsSize > 1) {
@@ -102,5 +117,13 @@ class AddJobsFilterDialog(
           .align(AlignX.FILL)
       }
     }
+      .apply{
+        validationsOnInput=mapOf(
+          prefixField to listOf(ValidatePrefix(listOf(prefixField to false, ownerField to false, jobIdField to true))),
+          ownerField to listOf(ValidatePrefix(listOf(ownerField to false, prefixField to false, jobIdField to true))),
+          jobIdField to listOf(ValidatePrefix(listOf(jobIdField to true, prefixField to false, ownerField to false)))
+        )
+      }
+    return dialogPanel
   }
 }

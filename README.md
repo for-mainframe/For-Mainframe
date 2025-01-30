@@ -1,5 +1,8 @@
 # For Mainframe
 
+# WARNING: THIS REPOSITORY IS MARKED AS 'DEPRECATED' AND WON'T BE MAINTAINED. CONSIDER SWITCHING TO ZOWE EXPLORER PLUGIN FOR INTELLIJ IDEA WITH THE SIMILAR FUNCTIONALITY, THE SUPPORT IS PROVIDED BY ZOWE® COMMUNITY ([link](https://github.com/zowe/zowe-explorer-intellij))
+# NOTE: FOR INDIVIDUAL SUPPORT, PLEASE CONTACT UKALESNIKAU@IBAGROUP.EU OR ABURAK@IBAGROUP.EU
+
 "For Mainframe" brings support for browsing, editing and creating data on z/OS
 via [z/OSMF REST API](https://www.ibm.com/docs/en/zos/2.4.0?topic=guide-using-zosmf-rest-services)
 

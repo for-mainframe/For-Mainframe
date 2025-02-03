@@ -2,7 +2,7 @@
 
 All notable changes to the For Mainframe Plugin will be documented in this file.
 
-## [Unreleased]
+## [1.2.5-221] (2025-02-03)
 
 ### Bugfixes
 
@@ -523,6 +523,7 @@ All notable changes to the For Mainframe Plugin will be documented in this file.
 * Bugfix: GitHub issue #85: The windows 'Add Working Set'/'Edit Working Set' are automatically resized if z/OSMF
   connection with very long name is added
 
+[1.2.5-221]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.4-221...1.2.5-221
 [1.2.4-221]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.3-221...1.2.4-221
 [1.2.3-221]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.2-221...1.2.3-221
 [1.2.2-221]: https://github.com/for-mainframe/For-Mainframe/compare/1.2.1-221...1.2.2-221
